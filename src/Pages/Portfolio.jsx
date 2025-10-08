@@ -835,9 +835,50 @@ function Portfolio() {
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div className="text-center mt-8 fade-in delay-300">
+            </div>
+
+            <div className="project-card floating-card fade-in delay-700">
+              <div className="card-content">
+                <div className="project-header">
+                  <div>
+                    <div className="project-category">Web App</div>
+                    <h3 className="project-title">AI-Based Cryptocurrency Price Predictor API</h3>
+                    <p className="project-subtitle">Flask REST API with LSTM Model</p>
+                  </div>
+                  <span className="project-status status-live">
+                    <div className="status-dot"></div>
+                    LIVE
+                  </span>
+                </div>
+
+                <p className="project-description">
+                  Flask-based REST API using LSTM deep learning model to forecast cryptocurrency prices. Integrates CoinGecko API for real-time data, provides predictions, risk scores, and investment recommendations with natural-language insights.
+                </p>
+
+                <div className="project-tech">
+                  <span className="tech-tag">Flask</span>
+                  <span className="tech-tag">TensorFlow</span>
+                  <span className="tech-tag">Keras</span>
+                  <span className="tech-tag">Pandas</span>
+                  <span className="tech-tag">NumPy</span>
+                  <span className="tech-tag">Scikit-learn</span>
+                  <span className="tech-tag">REST APIs</span>
+                  <span className="tech-tag">AI/ML</span>
+                </div>
+
+                <div className="project-footer">
+                  <a href="https://github.com/ahsan589/AI-Based-Cryptocurrency-Price-Predictor" target="_blank" className="project-link">
+                    View on GitHub
+                    <FontAwesomeIcon icon={faExternalLinkAlt} />
+                  </a>
+                  <a href="https://wa.me/923213486272?text=Hi Ahsan! I'm interested in the AI-Based Cryptocurrency Price Predictor API project. Can we discuss similar work?" target="_blank" className="project-discuss">
+                    <FontAwesomeIcon icon={faWhatsapp} /> Discuss
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center mt-8 fade-in delay-300">
             <a href="https://github.com/ahsan589" target="_blank" className="github-button">
               <FontAwesomeIcon icon={faGithub} />
               View All Projects on GitHub
