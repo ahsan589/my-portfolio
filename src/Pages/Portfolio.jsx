@@ -389,7 +389,7 @@ function Portfolio() {
             </h2>
 
             <p className="hero-description fade-in delay-200">
-              Specializing in <strong className="emerald-text">Android</strong> and <strong className="blue-text">React Native</strong> applications with expertise in <strong className="purple-text">Java</strong>, <strong className="emerald-text">Kotlin</strong>, and modern development practices.
+              Specializing in Android, React Native, React.js, and .NET applications with expertise in Java, Kotlin, and modern development practices.
             </p>
             
             <div className="hero-actions fade-in delay-300">
