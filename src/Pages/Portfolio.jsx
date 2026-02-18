@@ -34,10 +34,24 @@ function Portfolio() {
 
   const [typedText, setTypedText] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCertificatePreviewOpen, setIsCertificatePreviewOpen] = useState(false);
   const fullText = "Mobile & Software Developer";
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const sceneRef = useRef(null);
+
+  useEffect(() => {
+    if (!isCertificatePreviewOpen) return undefined;
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setIsCertificatePreviewOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isCertificatePreviewOpen]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -316,6 +330,26 @@ function Portfolio() {
   // Toggle mobile menu
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const openCertificatePreview = () => {
+    setIsCertificatePreviewOpen(true);
+  };
+
+  const closeCertificatePreview = () => {
+    setIsCertificatePreviewOpen(false);
+  };
+
+  const handleCertificationCardClick = (event) => {
+    if (event.target.closest("a")) return;
+    openCertificatePreview();
+  };
+
+  const handleCertificationCardKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openCertificatePreview();
+    }
   };
 
   return (
@@ -682,7 +716,14 @@ function Portfolio() {
               </ul>
             </div>
 
-            <div className="education-card floating-card fade-in delay-100">
+            <div
+              className="education-card certification-card floating-card fade-in delay-100"
+              role="button"
+              tabIndex={0}
+              aria-label="Open certificate image preview"
+              onClick={handleCertificationCardClick}
+              onKeyDown={handleCertificationCardKeyDown}
+            >
               <div className="education-head">
                 <div>
                   <div className="education-title">Professional Training & Certifications</div>
@@ -699,10 +740,42 @@ function Portfolio() {
                 <li>Ideagist Certificate</li>
                 <li>Verification portal: <a href="https://quiz.ideagist.com" target="_blank" rel="noreferrer">quiz.ideagist.com</a></li>
               </ul>
+
+              <div className="certificate-hint">Click to preview certificate</div>
             </div>
           </div>
         </div>
       </section>
+
+      {isCertificatePreviewOpen && (
+        <div
+          className="certificate-modal-overlay"
+          onClick={closeCertificatePreview}
+          role="presentation"
+        >
+          <div
+            className="certificate-modal-content"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Certificate image preview"
+          >
+            <button
+              type="button"
+              className="certificate-modal-close"
+              onClick={closeCertificatePreview}
+              aria-label="Close certificate preview"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+            <img
+              src="/cer.jpeg"
+              alt="Professional training certificate preview"
+              className="certificate-modal-image"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Services Section */}
       <section id="services" className="section">
@@ -2352,6 +2425,64 @@ function Portfolio() {
         .education-points a:hover {
           color: var(--blue-200);
           text-decoration: underline;
+        }
+
+        .certification-card {
+          cursor: pointer;
+        }
+
+        .certificate-hint {
+          margin-top: 1rem;
+          font-size: 0.85rem;
+          color: var(--indigo-300);
+          font-weight: 600;
+        }
+
+        .certificate-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 1000;
+          background: rgba(2, 6, 23, 0.85);
+          backdrop-filter: blur(6px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+        }
+
+        .certificate-modal-content {
+          position: relative;
+          width: min(900px, 96vw);
+          max-height: 92vh;
+          padding: 0.75rem;
+          border-radius: 1rem;
+          background: rgba(15, 23, 42, 0.92);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        .certificate-modal-close {
+          position: absolute;
+          top: 0.55rem;
+          right: 0.55rem;
+          width: 2.2rem;
+          height: 2.2rem;
+          border: 0;
+          border-radius: 999px;
+          cursor: pointer;
+          background: rgba(2, 6, 23, 0.75);
+          color: white;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .certificate-modal-image {
+          width: 100%;
+          height: auto;
+          max-height: calc(92vh - 1.5rem);
+          object-fit: contain;
+          display: block;
+          border-radius: 0.8rem;
         }
 
         /* Services Section */
