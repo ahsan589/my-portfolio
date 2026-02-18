@@ -71,13 +71,15 @@ function Portfolio() {
         const px = (clientX - rect.left) / rect.width - 0.5;
         const py = (clientY - rect.top) / rect.height - 0.5;
 
-        card.style.setProperty('--rx', `${(-py * 10).toFixed(2)}deg`);
-        card.style.setProperty('--ry', `${(px * 12).toFixed(2)}deg`);
-        card.style.setProperty('--tx', `${(px * 10).toFixed(2)}px`);
-        card.style.setProperty('--ty', `${(py * 8).toFixed(2)}px`);
+        // Inverse/parallax tilt: cursor-left => card shifts right.
+        card.style.setProperty('--rx', `${(py * 12).toFixed(2)}deg`);
+        card.style.setProperty('--ry', `${(-px * 16).toFixed(2)}deg`);
+        card.style.setProperty('--tx', `${(-px * 18).toFixed(2)}px`);
+        card.style.setProperty('--ty', `${(-py * 12).toFixed(2)}px`);
         card.setAttribute('data-tilting', 'true');
       };
 
+      const handlePointerEnter = () => card.setAttribute('data-tilting', 'true');
       const handlePointerMove = (event) => applyTilt(event.clientX, event.clientY);
       const handlePointerLeave = () => resetTilt();
       const handleTouchMove = (event) => {
@@ -92,6 +94,7 @@ function Portfolio() {
       };
       const handleTouchEnd = () => resetTilt();
 
+      card.addEventListener('pointerenter', handlePointerEnter);
       card.addEventListener('pointermove', handlePointerMove);
       card.addEventListener('pointerleave', handlePointerLeave);
       card.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -100,6 +103,7 @@ function Portfolio() {
       card.addEventListener('touchcancel', handleTouchEnd);
 
       cardCleanupFns.push(() => {
+        card.removeEventListener('pointerenter', handlePointerEnter);
         card.removeEventListener('pointermove', handlePointerMove);
         card.removeEventListener('pointerleave', handlePointerLeave);
         card.removeEventListener('touchstart', handleTouchStart);
@@ -343,6 +347,7 @@ function Portfolio() {
           <nav className={mobileMenuOpen ? "nav-open" : ""}>
             <a href="#about" onClick={() => setMobileMenuOpen(false)}>About</a>
             <a href="#experience" onClick={() => setMobileMenuOpen(false)}>Experience</a>
+            <a href="#education" onClick={() => setMobileMenuOpen(false)}>Education</a>
             <a href="#projects" onClick={() => setMobileMenuOpen(false)}>Projects</a>
             <a href="#services" onClick={() => setMobileMenuOpen(false)}>Services</a>
             <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Contact</a>
@@ -475,16 +480,16 @@ function Portfolio() {
               </div>
               <h3>Professional Mobile & Software Developer</h3>
               <p className="about-text">
-                With expertise in Android and React Native development, I specialize in creating
-                innovative mobile applications using Java, Kotlin, and modern development practices.
+                With expertise in Android, React Native, React.js, and .NET development, I specialize in creating
+                innovative mobile applications, modern web apps, and scalable web portals using strong engineering practices.
               </p>
               <p className="about-text">
-                I'm passionate about building user-friendly mobile apps that solve real-world problems
-                and deliver exceptional user experiences across different platforms and devices.
+                I'm passionate about building user-friendly digital products that solve real-world problems,
+                including cross-platform mobile apps, responsive web development with Bootstrap, and role-based web portal systems.
               </p>
               <p className="about-text">
                 Based in Pakistan and available for remote work worldwide, I've successfully developed multiple
-                mobile applications including cryptocurrency trackers, music recommendation apps, and utility tools.
+                solutions including cryptocurrency trackers, music recommendation apps, utility tools, and business-oriented web portals.
               </p>
               
               <div className="social-links">
@@ -642,6 +647,57 @@ function Portfolio() {
                 <li>Contributing to ASP.NET based systems and backend integrations.</li>
                 <li>Supporting Oracle-connected workflows and enterprise application features.</li>
                 <li>Collaborating with on-site teams to deliver stable releases and continuous improvements.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Education Section */}
+      <section id="education" className="section">
+        <div className="container">
+          <div className="section-header fade-in">
+            <h2 className="section-title"><span className="gradient-text">Education & Training</span></h2>
+            <p className="section-description">Academic background and professional training highlights</p>
+          </div>
+
+          <div className="education-grid">
+            <div className="education-card floating-card fade-in">
+              <div className="education-head">
+                <div>
+                  <div className="education-title">Bachelor of Science in IT</div>
+                  <div className="education-institute">University of Education, Lahore</div>
+                </div>
+                <div className="education-date">Nov 7, 2021 - Oct 5, 2025</div>
+              </div>
+
+              <div className="education-meta">
+                Jauharabad, Khushab, Pakistan | Website: <a href="https://www.ue.edu.pk/index.php" target="_blank" rel="noreferrer">ue.edu.pk</a>
+              </div>
+
+              <ul className="education-points">
+                <li>Field of study: Information Technologies</li>
+                <li>Final grade: 3.66 GPA</li>
+                <li>Level in EQF: EQF level 6</li>
+              </ul>
+            </div>
+
+            <div className="education-card floating-card fade-in delay-100">
+              <div className="education-head">
+                <div>
+                  <div className="education-title">Professional Training & Certifications</div>
+                  <div className="education-institute">Generative AI and Skill Development</div>
+                </div>
+              </div>
+
+              <p className="education-note">
+                Completed focused training in Generative AI with practical exposure to real-world AI problem-solving and solution design.
+              </p>
+
+              <ul className="education-points">
+                <li>Pak Angels - HEC Generative AI Training Course - Top Performer Certificate</li>
+                <li>Ideagist Certificate</li>
+                <li>Verification portal: <a href="https://quiz.ideagist.com" target="_blank" rel="noreferrer">quiz.ideagist.com</a></li>
               </ul>
             </div>
           </div>
@@ -1508,7 +1564,7 @@ function Portfolio() {
           font-size: 0.875rem;
           font-weight: bold;
           text-decoration: none;
-          transition: transform 0.3s ease;
+          transition: transform 0.12s ease-out, box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
         @media (min-width: 768px) {
@@ -2214,6 +2270,88 @@ function Portfolio() {
           line-height: 1.75;
           display: grid;
           gap: 0.45rem;
+        }
+
+        /* Education Section */
+        .education-grid {
+          display: grid;
+          gap: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+          .education-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        .education-card {
+          border-radius: 1.5rem;
+          padding: 1.5rem;
+          transition: all 0.3s ease;
+        }
+
+        .education-card:is(:hover, :focus-visible, :focus-within) {
+          transform: translateY(-6px) scale(1.01);
+        }
+
+        .education-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          flex-wrap: wrap;
+          margin-bottom: 0.75rem;
+        }
+
+        .education-title {
+          color: white;
+          font-size: 1.1rem;
+          font-weight: 700;
+        }
+
+        .education-institute {
+          color: var(--indigo-300);
+          font-weight: 600;
+        }
+
+        .education-date {
+          color: var(--emerald-300);
+          font-size: 0.875rem;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+
+        .education-meta {
+          color: var(--slate-300);
+          font-size: 0.9rem;
+          margin-bottom: 1rem;
+          line-height: 1.6;
+        }
+
+        .education-note {
+          color: var(--slate-300);
+          margin-bottom: 1rem;
+          line-height: 1.7;
+        }
+
+        .education-points {
+          margin: 0;
+          padding-left: 1.15rem;
+          color: var(--slate-300);
+          line-height: 1.75;
+          display: grid;
+          gap: 0.45rem;
+        }
+
+        .education-meta a,
+        .education-points a {
+          color: var(--blue-300);
+          text-decoration: none;
+        }
+
+        .education-meta a:hover,
+        .education-points a:hover {
+          color: var(--blue-200);
+          text-decoration: underline;
         }
 
         /* Services Section */
