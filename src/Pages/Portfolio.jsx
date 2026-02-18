@@ -34,7 +34,7 @@ function Portfolio() {
 
   const [typedText, setTypedText] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const fullText = "Mobile App Developer";
+  const fullText = "Mobile & Software Developer";
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const sceneRef = useRef(null);
@@ -42,6 +42,72 @@ function Portfolio() {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
+
+    // Make all cards keyboard-focusable for tab interaction effects.
+    const cardCleanupFns = [];
+    const interactiveCards = document.querySelectorAll('.floating-card');
+    interactiveCards.forEach((card, index) => {
+      const tag = card.tagName.toLowerCase();
+      const isNaturallyFocusable = ['a', 'button', 'input', 'select', 'textarea'].includes(tag);
+      if (!isNaturallyFocusable) {
+        card.setAttribute('tabindex', '0');
+      }
+
+      card.style.setProperty('--float-duration', `${5.2 + (index % 4) * 0.7}s`);
+      card.style.setProperty('--float-delay', `${(index % 6) * 0.35}s`);
+
+      const resetTilt = () => {
+        card.style.setProperty('--rx', '0deg');
+        card.style.setProperty('--ry', '0deg');
+        card.style.setProperty('--tx', '0px');
+        card.style.setProperty('--ty', '0px');
+        card.removeAttribute('data-tilting');
+      };
+
+      const applyTilt = (clientX, clientY) => {
+        const rect = card.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+
+        const px = (clientX - rect.left) / rect.width - 0.5;
+        const py = (clientY - rect.top) / rect.height - 0.5;
+
+        card.style.setProperty('--rx', `${(-py * 10).toFixed(2)}deg`);
+        card.style.setProperty('--ry', `${(px * 12).toFixed(2)}deg`);
+        card.style.setProperty('--tx', `${(px * 10).toFixed(2)}px`);
+        card.style.setProperty('--ty', `${(py * 8).toFixed(2)}px`);
+        card.setAttribute('data-tilting', 'true');
+      };
+
+      const handlePointerMove = (event) => applyTilt(event.clientX, event.clientY);
+      const handlePointerLeave = () => resetTilt();
+      const handleTouchMove = (event) => {
+        if (event.touches && event.touches[0]) {
+          applyTilt(event.touches[0].clientX, event.touches[0].clientY);
+        }
+      };
+      const handleTouchStart = (event) => {
+        if (event.touches && event.touches[0]) {
+          applyTilt(event.touches[0].clientX, event.touches[0].clientY);
+        }
+      };
+      const handleTouchEnd = () => resetTilt();
+
+      card.addEventListener('pointermove', handlePointerMove);
+      card.addEventListener('pointerleave', handlePointerLeave);
+      card.addEventListener('touchstart', handleTouchStart, { passive: true });
+      card.addEventListener('touchmove', handleTouchMove, { passive: true });
+      card.addEventListener('touchend', handleTouchEnd);
+      card.addEventListener('touchcancel', handleTouchEnd);
+
+      cardCleanupFns.push(() => {
+        card.removeEventListener('pointermove', handlePointerMove);
+        card.removeEventListener('pointerleave', handlePointerLeave);
+        card.removeEventListener('touchstart', handleTouchStart);
+        card.removeEventListener('touchmove', handleTouchMove);
+        card.removeEventListener('touchend', handleTouchEnd);
+        card.removeEventListener('touchcancel', handleTouchEnd);
+      });
+    });
     
     // Simple fade-in animation for elements
     const fadeElements = document.querySelectorAll('.fade-in');
@@ -225,12 +291,17 @@ function Portfolio() {
       window.addEventListener('resize', handleResize);
       
       return () => {
+        cardCleanupFns.forEach(cleanup => cleanup());
         window.removeEventListener('resize', handleResize);
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
         }
       };
     }
+
+    return () => {
+      cardCleanupFns.forEach(cleanup => cleanup());
+    };
   }, [theme]);
 
   // Theme toggle handler
@@ -247,6 +318,16 @@ function Portfolio() {
     <div className="portfolio-container">
       {/* 3D Animation Container */}
       <div ref={sceneRef} className="three-container"></div>
+      <div className="neon-books-bg" aria-hidden="true">
+        <span className="neon-book" style={{ '--x': '6%', '--size': '44px', '--delay': '0s', '--duration': '20s', '--hue': '0deg' }}></span>
+        <span className="neon-book" style={{ '--x': '18%', '--size': '52px', '--delay': '-3s', '--duration': '22s', '--hue': '35deg' }}></span>
+        <span className="neon-book" style={{ '--x': '31%', '--size': '46px', '--delay': '-6s', '--duration': '19s', '--hue': '65deg' }}></span>
+        <span className="neon-book" style={{ '--x': '44%', '--size': '58px', '--delay': '-8s', '--duration': '24s', '--hue': '95deg' }}></span>
+        <span className="neon-book" style={{ '--x': '57%', '--size': '42px', '--delay': '-10s', '--duration': '21s', '--hue': '130deg' }}></span>
+        <span className="neon-book" style={{ '--x': '70%', '--size': '54px', '--delay': '-12s', '--duration': '23s', '--hue': '180deg' }}></span>
+        <span className="neon-book" style={{ '--x': '82%', '--size': '47px', '--delay': '-5s', '--duration': '20s', '--hue': '230deg' }}></span>
+        <span className="neon-book" style={{ '--x': '92%', '--size': '50px', '--delay': '-9s', '--duration': '25s', '--hue': '280deg' }}></span>
+      </div>
       
       {/* Header */}
       <header>
@@ -255,12 +336,13 @@ function Portfolio() {
             <div className="logo-icon">AH</div>
             <div className="logo-text">
               <div className="logo-name">Ahsan Hajvari</div>
-              <div className="logo-title">Mobile App Developer</div>
+              <div className="logo-title">Mobile & Software Developer</div>
             </div>
           </div>
           
           <nav className={mobileMenuOpen ? "nav-open" : ""}>
             <a href="#about" onClick={() => setMobileMenuOpen(false)}>About</a>
+            <a href="#experience" onClick={() => setMobileMenuOpen(false)}>Experience</a>
             <a href="#projects" onClick={() => setMobileMenuOpen(false)}>Projects</a>
             <a href="#services" onClick={() => setMobileMenuOpen(false)}>Services</a>
             <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Contact</a>
@@ -315,9 +397,9 @@ function Portfolio() {
                 <FontAwesomeIcon icon={faComment} />
                 Let's Talk
               </a>
-              <a href="/resume.pdf" download="Ahsan_Hajvari_Resume.pdf" className="secondary-btn">
+              <a href="/Ahsan_Hajvari_CV%20(1).pdf" download="Ahsan_Hajvari_CV.pdf" className="secondary-btn">
                 <FontAwesomeIcon icon={faDownload} />
-                Download Resume
+                Download CV
               </a>
             </div>
             
@@ -367,9 +449,9 @@ function Portfolio() {
                   <a href="https://wa.me/923213486272?text=Hi Ahsan! I'd like to hire you for a project." target="_blank" className="card-primary-btn">
                     <FontAwesomeIcon icon={faWhatsapp} /> Hire Me Now
                   </a>
-                  <a href="/resume.pdf" download="Ahsan_Hajvari_Resume.pdf" className="card-secondary-btn">
+                  <a href="/Ahsan_Hajvari_CV%20(1).pdf" download="Ahsan_Hajvari_CV.pdf" className="card-secondary-btn">
                     <FontAwesomeIcon icon={faDownload} />
-                    Download Resume
+                    Download CV
                   </a>
                 </div>
               </div>
@@ -388,7 +470,10 @@ function Portfolio() {
           
           <div className="about-grid">
             <div className="about-content fade-in">
-              <h3>Professional Mobile App Developer</h3>
+              <div className="about-image-wrap">
+                <img src="/w.jpeg" alt="Ahsan Hajvari" className="about-image" />
+              </div>
+              <h3>Professional Mobile & Software Developer</h3>
               <p className="about-text">
                 With expertise in Android and React Native development, I specialize in creating
                 innovative mobile applications using Java, Kotlin, and modern development practices.
@@ -476,6 +561,88 @@ function Portfolio() {
                   <div className="skill-progress" style={{ width: "80%" }}></div>
                 </div>
               </div>
+
+              <div className="skill">
+                <div className="skill-header">
+                  <span className="skill-name">React.js</span>
+                  <span className="skill-percentage">85%</span>
+                </div>
+                <div className="skill-bar">
+                  <div className="skill-progress" style={{ width: "85%" }}></div>
+                </div>
+              </div>
+
+              <div className="skill">
+                <div className="skill-header">
+                  <span className="skill-name">.NET</span>
+                  <span className="skill-percentage">80%</span>
+                </div>
+                <div className="skill-bar">
+                  <div className="skill-progress" style={{ width: "80%" }}></div>
+                </div>
+              </div>
+
+              <div className="skill">
+                <div className="skill-header">
+                  <span className="skill-name">Databases</span>
+                  <span className="skill-percentage">82%</span>
+                </div>
+                <div className="skill-bar">
+                  <div className="skill-progress" style={{ width: "82%" }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Experience Section */}
+      <section id="experience" className="section">
+        <div className="container">
+          <div className="section-header fade-in">
+            <h2 className="section-title"><span className="gradient-text">Experience</span></h2>
+            <p className="section-description">Professional journey across mobile and software development roles</p>
+          </div>
+
+          <div className="experience-grid">
+            <div className="experience-card floating-card fade-in">
+              <div className="experience-head">
+                <div>
+                  <div className="experience-role">Mobile Application Developer Intern</div>
+                  <div className="experience-company">THE NIXUS Pvt Ltd (NASTP)</div>
+                </div>
+                <div className="experience-date">Jun 10, 2025 - Oct 10, 2025</div>
+              </div>
+
+              <div className="experience-meta">
+                Rawalpindi, Pakistan | Website: <a href="https://thenixus.com" target="_blank" rel="noreferrer">thenixus.com</a> | Email: <a href="mailto:info@nixus.com">info@nixus.com</a>
+              </div>
+
+              <ul className="experience-points">
+                <li>Assisted in building and maintaining mobile applications using modern frameworks and tools.</li>
+                <li>Performed app testing and debugging to ensure performance and reliability.</li>
+                <li>Collaborated with senior developers to implement new features and enhance UI/UX.</li>
+                <li>Contributed to code reviews, documentation, and agile development processes.</li>
+              </ul>
+            </div>
+
+            <div className="experience-card floating-card fade-in delay-100">
+              <div className="experience-head">
+                <div>
+                  <div className="experience-role">Software Developer (Contract)</div>
+                  <div className="experience-company">NRSP Microfinance Bank</div>
+                </div>
+                <div className="experience-date">Dec 2025 - Present</div>
+              </div>
+
+              <div className="experience-meta">Islamabad, Pakistan | On-site</div>
+
+              <ul className="experience-points">
+                <li>Working on mobile application development initiatives.</li>
+                <li>Contributing to ASP.NET based systems and backend integrations.</li>
+                <li>Supporting Oracle-connected workflows and enterprise application features.</li>
+                <li>Collaborating with on-site teams to deliver stable releases and continuous improvements.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -555,6 +722,52 @@ function Portfolio() {
               </div>
 
               <a href="https://wa.me/923213486272?text=Hi Ahsan! I'm interested in App Maintenance & Support services." target="_blank" className="service-button">
+                <FontAwesomeIcon icon={faWhatsapp} /> Get Quote
+              </a>
+            </div>
+
+            <div className="service-card floating-card fade-in delay-300">
+              <div className="service-icon">
+                <FontAwesomeIcon icon={faCode} />
+              </div>
+
+              <div className="service-header">
+                <h3 className="service-title">Web Development</h3>
+              </div>
+
+              <p className="service-description">Modern responsive web applications built with React.js and Bootstrap.</p>
+
+              <div className="service-features">
+                <div className="service-feature">React.js Development</div>
+                <div className="service-feature">Bootstrap UI Systems</div>
+                <div className="service-feature">Responsive Design</div>
+                <div className="service-feature">Component Architecture</div>
+              </div>
+
+              <a href="https://wa.me/923213486272?text=Hi Ahsan! I'm interested in Web Development services with React.js and Bootstrap." target="_blank" className="service-button">
+                <FontAwesomeIcon icon={faWhatsapp} /> Get Quote
+              </a>
+            </div>
+
+            <div className="service-card floating-card fade-in delay-400">
+              <div className="service-icon">
+                <FontAwesomeIcon icon={faUsers} />
+              </div>
+
+              <div className="service-header">
+                <h3 className="service-title">Web Portal Development</h3>
+              </div>
+
+              <p className="service-description">Business web portals using .NET MVC with secure workflows and structured modules.</p>
+
+              <div className="service-features">
+                <div className="service-feature">ASP.NET MVC</div>
+                <div className="service-feature">Role-Based Portals</div>
+                <div className="service-feature">CRUD & Reporting</div>
+                <div className="service-feature">Enterprise Integration</div>
+              </div>
+
+              <a href="https://wa.me/923213486272?text=Hi Ahsan! I'm interested in Web Portal Development using .NET MVC." target="_blank" className="service-button">
                 <FontAwesomeIcon icon={faWhatsapp} /> Get Quote
               </a>
             </div>
@@ -837,6 +1050,44 @@ function Portfolio() {
               </div>
             </div>
 
+            <div className="project-card floating-card fade-in delay-550">
+              <div className="card-content">
+                <div className="project-header">
+                  <div>
+                    <div className="project-category">Mobile + Web Platform</div>
+                    <h3 className="project-title">PlaySpot</h3>
+                    <p className="project-subtitle">Smart Sports & Gaming Ground Booking System</p>
+                  </div>
+                  <span className="project-status status-live">
+                    <div className="status-dot"></div>
+                    LIVE
+                  </span>
+                </div>
+
+                <p className="project-description">
+                  Complete booking platform with React Native apps for Players and Owners plus a React.js Admin Panel. Includes venue search with Google Maps, instant booking, payment proof uploads, complaints handling, and owner/admin verification workflows.
+                </p>
+
+                <div className="project-tech">
+                  <span className="tech-tag">React Native</span>
+                  <span className="tech-tag">React.js</span>
+                  <span className="tech-tag">Google Maps API</span>
+                  <span className="tech-tag">Booking System</span>
+                  <span className="tech-tag">Admin Panel</span>
+                </div>
+
+                <div className="project-footer">
+                  <a href="https://github.com/ahsan589/PlaySpot---Smart-Sports-Gaming-Ground-Booking-App" target="_blank" className="project-link">
+                    View on GitHub
+                    <FontAwesomeIcon icon={faExternalLinkAlt} />
+                  </a>
+                  <a href="https://wa.me/923213486272?text=Hi Ahsan! I'm interested in the PlaySpot project. Can we discuss similar work?" target="_blank" className="project-discuss">
+                    <FontAwesomeIcon icon={faWhatsapp} /> Discuss
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <div className="project-card floating-card fade-in delay-600">
               <div className="card-content">
                 <div className="project-header">
@@ -950,8 +1201,8 @@ function Portfolio() {
               <a href="mailto:ahsam72642@gmail.com?subject=Project Discussion&body=Hi Ahsan! I'd like to schedule a call to discuss my project requirements." className="secondary-btn">
                 <FontAwesomeIcon icon={faEnvelope} /> Schedule Call
               </a>
-              <a href="/resume.pdf" download="Ahsan_Hajvari_Resume.pdf" className="secondary-btn">
-                <FontAwesomeIcon icon={faDownload} /> Download Resume
+              <a href="/Ahsan_Hajvari_CV%20(1).pdf" download="Ahsan_Hajvari_CV.pdf" className="secondary-btn">
+                <FontAwesomeIcon icon={faDownload} /> Download CV
               </a>
             </div>
           </div>
@@ -966,7 +1217,7 @@ function Portfolio() {
               <div className="footer-icon">AH</div>
               <div className="footer-text">
                 <div className="footer-name">Ahsan Hajvari</div>
-                <div className="footer-title">Mobile App Developer</div>
+                <div className="footer-title">Mobile & Software Developer</div>
               </div>
             </a>
           </div>
@@ -1037,6 +1288,60 @@ function Portfolio() {
           height: 100%;
           z-index: 0;
           pointer-events: none;
+        }
+
+        .neon-books-bg {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          overflow: hidden;
+          opacity: 0.48;
+        }
+
+        .neon-book {
+          position: absolute;
+          left: var(--x);
+          bottom: -140px;
+          width: var(--size);
+          aspect-ratio: 3 / 4;
+          border-radius: 0.5rem;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          background:
+            linear-gradient(125deg, rgba(6, 182, 212, 0.55), rgba(99, 102, 241, 0.55), rgba(16, 185, 129, 0.4));
+          box-shadow:
+            0 0 14px rgba(56, 189, 248, 0.8),
+            0 0 28px rgba(99, 102, 241, 0.45),
+            inset 0 0 10px rgba(255, 255, 255, 0.3);
+          filter: hue-rotate(var(--hue));
+          animation: bookRise var(--duration) linear infinite;
+          animation-delay: var(--delay);
+          will-change: transform, opacity;
+        }
+
+        .neon-book::before {
+          content: "";
+          position: absolute;
+          top: 6%;
+          left: 12%;
+          width: 12%;
+          height: 88%;
+          border-radius: 0.25rem;
+          background: rgba(2, 6, 23, 0.35);
+        }
+
+        .neon-book::after {
+          content: "";
+          position: absolute;
+          right: 14%;
+          top: 16%;
+          width: 58%;
+          height: 2px;
+          background: rgba(255, 255, 255, 0.7);
+          box-shadow:
+            0 8px 0 rgba(255, 255, 255, 0.55),
+            0 16px 0 rgba(255, 255, 255, 0.4),
+            0 24px 0 rgba(255, 255, 255, 0.35);
         }
 
         .container {
@@ -1472,11 +1777,16 @@ function Portfolio() {
 
         /* Floating Card */
         .floating-card {
+          --rx: 0deg;
+          --ry: 0deg;
+          --tx: 0px;
+          --ty: 0px;
           position: relative;
           border-radius: 1.5rem;
           overflow: hidden;
           box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-          animation: float 6s ease-in-out infinite;
+          animation: float var(--float-duration, 6.2s) ease-in-out infinite;
+          animation-delay: var(--float-delay, 0s);
           transition: transform 0.3s ease;
           background: var(--slate-900);
           backdrop-filter: blur(20px);
@@ -1484,13 +1794,72 @@ function Portfolio() {
           will-change: transform;
         }
 
-        .floating-card:hover {
-          transform: translateY(-8px) scale(1.02);
-          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+        .floating-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: linear-gradient(120deg, rgba(59, 130, 246, 0.22), rgba(99, 102, 241, 0.16), rgba(16, 185, 129, 0.14));
+          opacity: 0;
+          transition: opacity 0.35s ease;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .floating-card::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -120%;
+          width: 45%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+          transform: skewX(-20deg);
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .floating-card:focus-visible {
+          outline: 2px solid rgba(99, 102, 241, 0.8);
+          outline-offset: 2px;
+        }
+
+        .floating-card:is(:hover, :focus-visible, :focus-within, [data-tilting="true"]) {
+          animation-play-state: paused;
+          transform: perspective(900px) translate3d(var(--tx), calc(-10px + var(--ty)), 0) rotateX(var(--rx)) rotateY(var(--ry)) scale(1.025);
+          box-shadow: 0 32px 70px rgba(15, 23, 42, 0.75);
+          border-color: rgba(99, 102, 241, 0.45);
+        }
+
+        .floating-card:is(:hover, :focus-visible, :focus-within, [data-tilting="true"])::before {
+          opacity: 1;
+        }
+
+        .floating-card:is(:hover, :focus-visible, :focus-within, [data-tilting="true"])::after {
+          animation: shineSweep 0.9s ease;
+        }
+
+        .floating-card .service-icon,
+        .floating-card .contact-icon,
+        .floating-card .project-title,
+        .floating-card .experience-role {
+          transition: transform 0.35s ease, color 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        .floating-card:is(:hover, :focus-visible, :focus-within, [data-tilting="true"]) .service-icon,
+        .floating-card:is(:hover, :focus-visible, :focus-within, [data-tilting="true"]) .contact-icon {
+          transform: translateY(-4px) scale(1.06);
+          box-shadow: 0 16px 35px rgba(99, 102, 241, 0.35);
+        }
+
+        .floating-card:is(:hover, :focus-visible, :focus-within, [data-tilting="true"]) .project-title,
+        .floating-card:is(:hover, :focus-visible, :focus-within, [data-tilting="true"]) .experience-role {
+          color: var(--indigo-200);
         }
 
         .card-content {
           position: relative;
+          z-index: 1;
           padding: 2rem;
           display: flex;
           flex-direction: column;
@@ -1665,6 +2034,31 @@ function Portfolio() {
           margin-bottom: 1.5rem;
         }
 
+        .about-image-wrap {
+          width: min(78%, 340px);
+          margin: 0 auto 1.5rem auto;
+          border-radius: 1.25rem;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(15, 23, 42, 0.45);
+          backdrop-filter: blur(12px);
+          box-shadow: 0 10px 35px rgba(59, 130, 246, 0.25);
+          animation: aboutFloat 4.5s ease-in-out infinite;
+        }
+
+        .about-image {
+          width: 100%;
+          height: auto;
+          display: block;
+          object-fit: cover;
+          max-height: 300px;
+          transition: transform 0.45s ease;
+        }
+
+        .about-image-wrap:hover .about-image {
+          transform: scale(1.06) rotate(1.5deg);
+        }
+
         .about-text {
           color: var(--slate-300);
           line-height: 1.7;
@@ -1748,6 +2142,80 @@ function Portfolio() {
           animation: slideIn 1.5s ease-out forwards;
         }
 
+        /* Experience Section */
+        .experience-grid {
+          display: grid;
+          gap: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+          .experience-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        .experience-card {
+          border-radius: 1.5rem;
+          padding: 1.5rem;
+          transition: all 0.3s ease;
+        }
+
+        .experience-card:is(:hover, :focus-visible, :focus-within) {
+          transform: translateY(-6px) scale(1.01);
+        }
+
+        .experience-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          flex-wrap: wrap;
+          margin-bottom: 0.75rem;
+        }
+
+        .experience-role {
+          color: white;
+          font-size: 1.1rem;
+          font-weight: 700;
+        }
+
+        .experience-company {
+          color: var(--indigo-300);
+          font-weight: 600;
+        }
+
+        .experience-date {
+          color: var(--emerald-300);
+          font-size: 0.875rem;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+
+        .experience-meta {
+          color: var(--slate-300);
+          font-size: 0.9rem;
+          margin-bottom: 1rem;
+          line-height: 1.6;
+        }
+
+        .experience-meta a {
+          color: var(--blue-300);
+          text-decoration: none;
+        }
+
+        .experience-meta a:hover {
+          color: var(--blue-200);
+          text-decoration: underline;
+        }
+
+        .experience-points {
+          margin: 0;
+          padding-left: 1.15rem;
+          color: var(--slate-300);
+          line-height: 1.75;
+          display: grid;
+          gap: 0.45rem;
+        }
+
         /* Services Section */
         .services-grid {
           display: grid;
@@ -1769,7 +2237,7 @@ function Portfolio() {
           flex-direction: column;
         }
 
-        .service-card:hover {
+        .service-card:is(:hover, :focus-visible, :focus-within) {
           transform: translateY(-8px) scale(1.02);
         }
 
@@ -1877,7 +2345,7 @@ function Portfolio() {
           flex-direction: column;
         }
 
-        .project-card:hover {
+        .project-card:is(:hover, :focus-visible, :focus-within) {
           transform: translateY(-8px) scale(1.02);
         }
 
@@ -1905,7 +2373,7 @@ function Portfolio() {
           transition: color 0.3s ease;
         }
 
-        .project-card:hover .project-title {
+        .project-card:is(:hover, :focus-visible, :focus-within) .project-title {
           color: var(--indigo-300);
         }
 
@@ -2086,7 +2554,7 @@ function Portfolio() {
           height: 100%;
         }
 
-        .contact-card:hover {
+        .contact-card:is(:hover, :focus-visible, :focus-within) {
           transform: scale(1.05);
         }
 
@@ -2281,10 +2749,38 @@ function Portfolio() {
 
         @keyframes float {
           0%, 100% {
-              transform: translateY(0px);
+              transform: translate3d(0, 0px, 0) rotateZ(0deg);
+          }
+          25% {
+              transform: translate3d(0, -7px, 0) rotateZ(-0.35deg);
           }
           50% {
-              transform: translateY(-30px);
+              transform: translate3d(0, -13px, 0) rotateZ(0.2deg);
+          }
+          75% {
+              transform: translate3d(0, -6px, 0) rotateZ(0.45deg);
+          }
+        }
+
+        @keyframes bookRise {
+          0% {
+            transform: translate3d(0, 0, 0) rotate(-12deg);
+            opacity: 0;
+          }
+          8% {
+            opacity: 0.95;
+          }
+          45% {
+            transform: translate3d(14px, -40vh, 0) rotate(3deg);
+            opacity: 0.9;
+          }
+          75% {
+            transform: translate3d(-10px, -76vh, 0) rotate(10deg);
+            opacity: 0.75;
+          }
+          100% {
+            transform: translate3d(6px, -118vh, 0) rotate(-5deg);
+            opacity: 0;
           }
         }
 
@@ -2321,6 +2817,26 @@ function Portfolio() {
           }
           50% {
               opacity: 0.5;
+          }
+        }
+
+        @keyframes shineSweep {
+          0% {
+            left: -120%;
+          }
+          100% {
+            left: 130%;
+          }
+        }
+
+        @keyframes aboutFloat {
+          0%, 100% {
+            transform: translateY(0);
+            box-shadow: 0 10px 35px rgba(59, 130, 246, 0.2);
+          }
+          50% {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 45px rgba(99, 102, 241, 0.3);
           }
         }
 
@@ -2369,6 +2885,10 @@ function Portfolio() {
 
         .delay-500 {
           animation-delay: 0.5s;
+        }
+
+        .delay-550 {
+          animation-delay: 0.55s;
         }
 
         /* Responsive Adjustments */
