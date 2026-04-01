@@ -1,5 +1,6 @@
 // src/Pages/Portfolio.jsx
 import React, { useEffect, useState, useRef } from "react";
+import PortfolioAIChat from '../components/PortfolioAIChat.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faSun, 
@@ -16,7 +17,8 @@ import {
   faTools,
   faExternalLinkAlt,
   faBars,
-  faXmark
+  faXmark,
+  faRobot
 } from '@fortawesome/free-solid-svg-icons';
 import { 
   faWhatsapp, 
@@ -35,10 +37,12 @@ function Portfolio() {
   const [typedText, setTypedText] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCertificatePreviewOpen, setIsCertificatePreviewOpen] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
   const fullText = "Mobile & Software Developer";
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const sceneRef = useRef(null);
+  const aiChatSectionRef = useRef(null);
 
   useEffect(() => {
     if (!isCertificatePreviewOpen) return undefined;
@@ -332,6 +336,19 @@ function Portfolio() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  const toggleAIChat = () => {
+    setShowAIChat((previous) => {
+      const next = !previous;
+      if (!previous) {
+        window.requestAnimationFrame(() => {
+          aiChatSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+      return next;
+    });
+    setMobileMenuOpen(false);
+  };
+
   const openCertificatePreview = () => {
     setIsCertificatePreviewOpen(true);
   };
@@ -384,10 +401,14 @@ function Portfolio() {
             <a href="#education" onClick={() => setMobileMenuOpen(false)}>Education</a>
             <a href="#projects" onClick={() => setMobileMenuOpen(false)}>Projects</a>
             <a href="#services" onClick={() => setMobileMenuOpen(false)}>Services</a>
+            <a href="#ai-chat" onClick={(event) => { event.preventDefault(); toggleAIChat(); }}>AI Assistant</a>
             <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Contact</a>
           </nav>
           
           <div className="header-actions">
+            <button onClick={toggleAIChat} className="theme-toggle-btn" aria-label="Toggle AI chat">
+              <FontAwesomeIcon icon={faRobot} />
+            </button>
             <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle theme">
               {theme === "dark" ? <FontAwesomeIcon icon={faSun} /> : <FontAwesomeIcon icon={faMoon} />}
             </button>
@@ -498,6 +519,21 @@ function Portfolio() {
           </div>
         </div>
       </section>
+
+      {showAIChat && (
+        <section id="ai-chat" ref={aiChatSectionRef} className="section">
+          <div className="container">
+            <div className="section-header fade-in">
+              <div className="section-subtitle">AI Assistant</div>
+              <h2 className="section-title">Explore the portfolio in a full chat workspace</h2>
+              <p className="section-description">
+                Ask about Android apps, React Native builds, ASP.NET portals, Oracle-connected workflows, featured projects, or hiring availability.
+              </p>
+            </div>
+            <PortfolioAIChat expanded />
+          </div>
+        </section>
+      )}
 
       {/* About Section */}
       <section id="about" className="section">
@@ -1179,6 +1215,48 @@ function Portfolio() {
               </div>
             </div>
 
+            <div className="project-card floating-card fade-in delay-525">
+              <div className="card-content">
+                <div className="project-header">
+                  <div>
+                    <div className="project-category">Enterprise Web App</div>
+                    <h3 className="project-title">Fee Management System</h3>
+                    <p className="project-subtitle">College / University Fee & Challan Platform</p>
+                  </div>
+                  <span className="project-status status-live">
+                    <div className="status-dot"></div>
+                    LIVE
+                  </span>
+                </div>
+
+                <p className="project-description">
+                  Complete fee management system built in both <strong>React.js + Firebase</strong> and <strong>ASP.NET / .NET MVC</strong>. It supports student search, admission and editing, fee and advance challan generation with printing, payments and daily/monthly collections, defaulter and clearance reports, expenses management, and role-based access for Admin and Accountant users.
+                </p>
+
+                <div className="project-tech">
+                  <span className="tech-tag">React.js</span>
+                  <span className="tech-tag">Firebase</span>
+                  <span className="tech-tag">ASP.NET MVC</span>
+                  <span className="tech-tag">Role-Based Access</span>
+                  <span className="tech-tag">Reporting</span>
+                </div>
+
+                <div className="project-footer" style={{ gap: '10px', flexWrap: 'wrap' }}>
+                  <a href="https://github.com/ahsan589/UniversityFeeManagmentSystem" target="_blank" className="project-link">
+                    React.js Repo
+                    <FontAwesomeIcon icon={faExternalLinkAlt} />
+                  </a>
+                  <a href="https://github.com/ahsan589/studentfeemanagmentsystem" target="_blank" className="project-link">
+                    .NET MVC Repo
+                    <FontAwesomeIcon icon={faExternalLinkAlt} />
+                  </a>
+                  <a href="https://wa.me/923213486272?text=Hi Ahsan! I'm interested in the Fee Management System project built in React.js and .NET MVC. Can we discuss similar work?" target="_blank" className="project-discuss">
+                    <FontAwesomeIcon icon={faWhatsapp} /> Discuss
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <div className="project-card floating-card fade-in delay-550">
               <div className="card-content">
                 <div className="project-header">
@@ -1225,9 +1303,9 @@ function Portfolio() {
                     <h3 className="project-title">JobConnect</h3>
                     <p className="project-subtitle">Job Portal Mobile App</p>
                   </div>
-                  <span className="project-status status-in-progress">
+                  <span className="project-status status-live">
                     <div className="status-dot"></div>
-                    IN PROGRESS
+                    LIVE
                   </span>
                 </div>
 
@@ -1357,7 +1435,7 @@ function Portfolio() {
         </div>
       </footer>
 
-      <style jsx>{`
+<style jsx="true">{`
         :root {
           --indigo-500: #6366f1;
           --purple-500: #8b5cf6;
