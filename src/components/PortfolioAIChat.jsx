@@ -14,11 +14,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 const STORAGE_KEY = 'portfolio_ai_chat_sessions_v2';
-const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const API_KEY = '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';
-const VISION_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const SITE_URL = 'http://localhost:5173';
-const SITE_NAME = 'Portfolio AI Chat';
+const API_URL = '/api/chat';
 
 const suggestedQuestions = [
   'Tell me about your React Native projects',
@@ -32,7 +28,14 @@ const suggestedQuestions = [
 ];
 
 const portfolioKnowledge = `
-You are Ahsan Hajvari's portfolio AI assistant. Answer as a professional assistant for his portfolio, using only the information below unless the user asks for general industry guidance.
+You are Ahsan Hajvari's portfolio AI assistant. Answer as a professional assistant for his portfolio.
+
+Response rules:
+- If the user asks about Ahsan's experience, projects, services, skills, hiring, or availability, answer from the portfolio information below.
+- If the user asks general technical questions related to mobile app development, Android, React Native, React.js, ASP.NET/.NET MVC, Oracle workflows, Firebase, REST APIs, Java, Kotlin, JavaScript, TypeScript, Jetpack Compose, MVVM, AI/ML, Flask, TensorFlow, Keras, or software development best practices, you may answer with helpful industry guidance.
+- When answering general technical questions, keep the response practical, clear, and professional.
+- When relevant, connect the answer back to Ahsan's real experience and projects.
+- If the user asks something outside both the portfolio scope and those technical areas, briefly say the assistant is mainly focused on Ahsan's portfolio and related software topics.
 
 Owner:
 - Name: Ahsan Hajvari
@@ -82,6 +85,7 @@ Projects:
 Behavior:
 - Be confident, concise, and helpful.
 - Connect answers to specific projects and services above.
+- You can also answer broader software and programming questions related to the technologies listed above.
 - For hiring questions, suggest contacting by WhatsApp or email.
 - If asked for unavailable details such as undisclosed pricing, say the portfolio does not specify it.
 `;
@@ -328,12 +332,8 @@ const PortfolioAIChat = ({ inNavbar = false, expanded = false }) => {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
-        credentials: 'omit',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${API_KEY}`,
-          'HTTP-Referer': SITE_URL,
-          'X-Title': SITE_NAME
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: 'openrouter/auto',
@@ -377,7 +377,7 @@ const PortfolioAIChat = ({ inNavbar = false, expanded = false }) => {
       });
     } catch (error) {
       console.error('Portfolio AI error:', error);
-      const fallbackReply = generateFallbackReply(text);
+      const fallbackReply = `${generateFallbackReply(text)}\n\nConnection note: ${normalizeErrorMessage(error, 'Unable to reach the AI service.')}`;
 
       updateCurrentSession((session) => {
         const updatedMessages = [
