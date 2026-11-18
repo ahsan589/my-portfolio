@@ -1,13 +1,23 @@
 // src/App.jsx
-import React from "react";
-import Portfolio from "./Pages/Portfolio.jsx"; // Correct path
+import React, { useEffect, useState } from "react";
+import Portfolio from "./Pages/Portfolio.jsx";
+import AIChatPage from "./Pages/AIChatPage.jsx";
 
 function App() {
-  return (
-    <div>
-      <Portfolio />
-    </div>
-  );
+  const [route, setRoute] = useState(() => window.location.hash || "#/");
+
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash || "#/");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [route]);
+
+  if (route.startsWith("#/ai-chat")) return <AIChatPage />;
+  return <Portfolio />;
 }
 
 export default App;

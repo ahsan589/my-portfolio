@@ -1,30 +1,31 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// src/components/PortfolioAIChat.jsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faPaperPlane,
+  faArrowUp,
   faPaperclip,
-  faRobot,
-  faHistory,
-  faLightbulb,
   faPlus,
   faTrash,
   faXmark,
-  faUser,
-  faCodeBranch
-} from '@fortawesome/free-solid-svg-icons';
+  faClockRotateLeft,
+  faCopy,
+  faCheck,
+  faHouse,
+  faSun,
+  faMoon,
+  faRobot,
+} from "@fortawesome/free-solid-svg-icons";
 
-const STORAGE_KEY = 'portfolio_ai_chat_sessions_v2';
-const API_URL = '/api/chat';
+const STORAGE_KEY = "portfolio_ai_chat_sessions_v2";
+const API_URL = "/api/chat";
 
 const suggestedQuestions = [
-  'Tell me about your React Native projects',
-  'What experience do you have with .NET and Oracle?',
-  'Which Android apps have you built with Java or Kotlin?',
-  'Explain the PlaySpot booking system project',
-  'How do you integrate Firebase into mobile apps?',
-  'What services do you offer for business portals?',
-  'Show me projects that involve AI or machine learning',
-  'What is your hiring process and availability?'
+  "Tell me about your React Native projects",
+  "What experience do you have with .NET and Oracle?",
+  "Which Android apps have you built?",
+  "Explain the PlaySpot booking system",
+  "How do you integrate Firebase?",
+  "What is your hiring availability?",
 ];
 
 const portfolioKnowledge = `
@@ -92,28 +93,27 @@ Behavior:
 
 const escapeHtml = (value) =>
   value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
 const formatMessageContent = (content) => {
-  const safeContent = escapeHtml(content || '');
-  return safeContent
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`(.*?)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>');
+  const safe = escapeHtml(content || "");
+  return safe
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/`(.*?)`/g, "<code>$1</code>")
+    .replace(/\n/g, "<br>");
 };
 
-const normalizeErrorMessage = (value, fallback = 'Please try again.') => {
+const normalizeErrorMessage = (value, fallback = "Please try again.") => {
   if (!value) return fallback;
-  if (typeof value === 'string') return value;
-  if (typeof value?.message === 'string') return value.message;
-  if (typeof value?.error === 'string') return value.error;
-  if (typeof value?.error?.message === 'string') return value.error.message;
-
+  if (typeof value === "string") return value;
+  if (typeof value?.message === "string") return value.message;
+  if (typeof value?.error === "string") return value.error;
+  if (typeof value?.error?.message === "string") return value.error.message;
   try {
     return JSON.stringify(value);
   } catch {
@@ -122,996 +122,584 @@ const normalizeErrorMessage = (value, fallback = 'Please try again.') => {
 };
 
 const generateFallbackReply = (input) => {
-  const question = (input || '').toLowerCase();
-
-  if (question.includes('firebase')) {
-    return `Ahsan integrates Firebase in mobile apps for features like authentication, real-time data, storage, and scalable backend workflows. In the portfolio, Firebase is part of projects like **Crypto Market Analysis App** and **JobConnect**, where it supports modern React Native app functionality.`;
-  }
-
-  if (question.includes('react native')) {
-    return `Ahsan has strong React Native experience across multiple projects, including **Crypto Market Analysis App**, **MoodTunes**, **PlaySpot**, and **JobConnect**. He builds cross-platform apps with React Native, Expo where needed, REST API integrations, Firebase, and production-focused UI flows.`;
-  }
-
-  if (question.includes('.net') || question.includes('asp.net') || question.includes('oracle')) {
-    return `Ahsan also works on **ASP.NET / .NET MVC systems** and **Oracle-connected enterprise workflows**. At **NRSP Microfinance Bank**, he contributes to mobile initiatives, backend integrations, ASP.NET systems, and Oracle-linked business application features.`;
-  }
-
-  if (question.includes('android') || question.includes('java') || question.includes('kotlin')) {
-    return `Ahsan builds native Android apps with **Java** and **Kotlin**. Portfolio examples include **Crypto Market App** with Java, **Urdu Audio/Video to Text Converter** with Java and FFmpeg, and **News Reader App** with Kotlin, Jetpack Compose, and MVVM.`;
-  }
-
-  if (question.includes('playspot')) {
-    return `**PlaySpot** is a full booking platform with React Native apps for Players and Owners plus a React.js Admin Panel. It includes Google Maps venue search, instant booking, payment proof uploads, complaint handling, and owner/admin verification workflows.`;
-  }
-
-  if (
-    question.includes('fee management') ||
-    question.includes('college') ||
-    question.includes('university') ||
-    question.includes('challan')
-  ) {
-    return `Ahsan built a **Fee Management System** in both **React.js + Firebase** and **ASP.NET / .NET MVC**. It includes student search and admission, fee and advance challan generation with printing, payment and collections tracking, defaulter and clearance reports, expenses management, and role-based access for **Admin** and **Accountant** users.`;
-  }
-
-  if (question.includes('project') || question.includes('portfolio')) {
-    return `Featured portfolio work includes **Crypto Market Analysis App**, **MoodTunes**, **PlaySpot**, **Fee Management System** in both **React.js** and **.NET MVC**, **DreamWeaver**, **Crypto Price Predictor API**, **News Reader App**, and **Urdu Audio/Video to Text Converter**. The work spans Android, React Native, React.js, Firebase, AI/ML, .NET, and Oracle-connected business systems.`;
-  }
-
-  if (question.includes('hire') || question.includes('contact') || question.includes('availability')) {
-    return `Ahsan is available for projects and remote work. For hiring or project discussions, the portfolio directs visitors to **WhatsApp: +92 321 3486272** or **email: ahsam72642@gmail.com**.`;
-  }
-
-  return `Ahsan is a **Mobile & Software Developer** with experience in **Android, React Native, React.js, ASP.NET/.NET MVC, Oracle-connected workflows, Firebase, REST APIs, and AI/ML integrations**. Ask about a project, technology, or hiring and I can answer from the portfolio details.`;
+  const q = (input || "").toLowerCase();
+  if (q.includes("firebase"))
+    return `Ahsan integrates Firebase in mobile apps for authentication, real-time data, storage, and scalable backends. Used in **Crypto Market Analysis App** and **JobConnect**.`;
+  if (q.includes("react native"))
+    return `Ahsan has strong React Native experience across **Crypto Market Analysis App**, **MoodTunes**, **PlaySpot**, and **JobConnect**: cross-platform apps with Expo, REST APIs, and Firebase.`;
+  if (q.includes(".net") || q.includes("asp.net") || q.includes("oracle"))
+    return `Ahsan works on **ASP.NET / .NET MVC** and **Oracle-connected enterprise workflows**. At **NRSP Microfinance Bank** he builds mobile initiatives, backend integrations, and Oracle-linked features.`;
+  if (q.includes("android") || q.includes("java") || q.includes("kotlin"))
+    return `Ahsan builds native Android apps with **Java** and **Kotlin**. Examples: **Crypto Market App**, **Urdu Audio/Video to Text Converter**, and **News Reader App** (Jetpack Compose + MVVM).`;
+  if (q.includes("playspot"))
+    return `**PlaySpot** is a booking platform with React Native apps for Players and Owners plus a React.js Admin Panel, with Google Maps, booking, payment proofs, and verification workflows.`;
+  if (q.includes("fee management") || q.includes("college") || q.includes("university") || q.includes("challan"))
+    return `Ahsan built a **Fee Management System** in both **React.js + Firebase** and **ASP.NET / .NET MVC**: student management, challans, payments, reports, and role-based access.`;
+  if (q.includes("project") || q.includes("portfolio"))
+    return `Featured work includes **Crypto Market Analysis App**, **MoodTunes**, **PlaySpot**, **Fee Management System**, **DreamWeaver**, **Crypto Price Predictor API**, and **News Reader App**.`;
+  if (q.includes("hire") || q.includes("contact") || q.includes("availability"))
+    return `Ahsan is available for projects and remote work. Contact **WhatsApp: +92 321 3486272** or **email: ahsam72642@gmail.com**.`;
+  return `Ahsan is a **Mobile & Software Developer** focused on **Android, React Native, React.js, ASP.NET/.NET MVC, Oracle, Firebase, REST APIs, and AI/ML**. Ask about a project, technology, or hiring.`;
 };
 
-const createSession = () => {
-  const id = Date.now().toString();
-  return {
-    id,
-    title: 'New Chat',
-    preview: 'Ask about projects, Android, React Native, .NET, or Oracle.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    messages: []
-  };
-};
+const createSession = () => ({
+  id: Date.now().toString(),
+  title: "New chat",
+  preview: "Ask about projects, skills, or hiring",
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  messages: [],
+});
 
-const PortfolioAIChat = ({ inNavbar = false, expanded = false }) => {
-  const [theme, setTheme] = useState('dark');
+const PortfolioAIChat = ({
+  inNavbar = false,
+  expanded = false,
+  fullPage = false, // kept for API compatibility
+  openSignal = 0,
+}) => {
   const [isOpen, setIsOpen] = useState(expanded);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [messageInput, setMessageInput] = useState('');
+  const [messageInput, setMessageInput] = useState("");
   const [pendingImage, setPendingImage] = useState(null);
   const [chatSessions, setChatSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
+  const [theme, setTheme] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("theme") || "dark" : "dark"
+  );
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  useEffect(() => setIsOpen(expanded), [expanded]);
 
   useEffect(() => {
-    const root = document.documentElement;
-    const syncTheme = () => setTheme(root.getAttribute('data-theme') || 'dark');
-    syncTheme();
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    setIsOpen(expanded);
-  }, [expanded]);
+    if (openSignal > 0 && !expanded) {
+      setIsOpen(true);
+      setShowHistory(false);
+    }
+  }, [openSignal, expanded]);
 
   useEffect(() => {
     try {
-      const rawSessions = localStorage.getItem(STORAGE_KEY);
-      if (rawSessions) {
-        const parsed = JSON.parse(rawSessions);
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setChatSessions(parsed);
           setCurrentSessionId(parsed[0].id);
           return;
         }
       }
-    } catch (error) {
-      console.error('Failed to load portfolio chat sessions:', error);
+    } catch (e) {
+      console.error(e);
     }
-
-    const initialSession = createSession();
-    setChatSessions([initialSession]);
-    setCurrentSessionId(initialSession.id);
+    const s = createSession();
+    setChatSessions([s]);
+    setCurrentSessionId(s.id);
   }, []);
 
   useEffect(() => {
     if (!chatSessions.length) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(chatSessions));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(chatSessions));
+    } catch {
+      try {
+        const slim = chatSessions.map((s) => ({
+          ...s,
+          messages: s.messages.map(({ image, ...m }) => m),
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+      } catch {}
+    }
   }, [chatSessions]);
 
   const currentSession = useMemo(
-    () => chatSessions.find((session) => session.id === currentSessionId) || null,
+    () => chatSessions.find((s) => s.id === currentSessionId) || null,
     [chatSessions, currentSessionId]
   );
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [currentSession, isTyping, isOpen]);
 
-  const updateCurrentSession = (updater) => {
-    setChatSessions((previousSessions) =>
-      previousSessions.map((session) => {
-        if (session.id !== currentSessionId) return session;
-        return updater(session);
-      })
-    );
-  };
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = Math.min(el.scrollHeight, 160) + "px";
+    }
+  }, [messageInput]);
+
+  const updateCurrentSession = (updater) =>
+    setChatSessions((prev) => prev.map((s) => (s.id === currentSessionId ? updater(s) : s)));
 
   const createNewChat = () => {
-    const session = createSession();
-    setChatSessions((previous) => [session, ...previous]);
-    setCurrentSessionId(session.id);
-    setMessageInput('');
+    const s = createSession();
+    setChatSessions((prev) => [s, ...prev]);
+    setCurrentSessionId(s.id);
+    setMessageInput("");
     setPendingImage(null);
     setShowHistory(false);
-    setShowSuggestions(false);
     setIsOpen(true);
   };
 
   const clearAllChats = () => {
-    const session = createSession();
-    setChatSessions([session]);
-    setCurrentSessionId(session.id);
-    setMessageInput('');
+    const s = createSession();
+    setChatSessions([s]);
+    setCurrentSessionId(s.id);
+    setMessageInput("");
     setPendingImage(null);
+    setShowHistory(false);
   };
 
-  const handleImageSelect = (event) => {
-    const file = event.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    localStorage.setItem("theme", next);
+    document.documentElement.setAttribute("data-theme", next);
+  };
 
+  const copyMessage = async (m) => {
+    try {
+      await navigator.clipboard.writeText(m.content);
+      setCopiedId(m.id);
+      setTimeout(() => setCopiedId(null), 1400);
+    } catch {}
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      setPendingImage({
-        name: file.name,
-        dataUrl: reader.result
-      });
-    };
+    reader.onload = () => setPendingImage({ name: file.name, dataUrl: reader.result });
     reader.readAsDataURL(file);
-    event.target.value = '';
+    e.target.value = "";
   };
 
-  const buildApiMessages = (messages) =>
-    [
-      { role: 'system', content: portfolioKnowledge },
-      ...messages.map((message) => {
-        if (message.role === 'user' && message.image?.dataUrl) {
-          return {
-            role: 'user',
-            content: [
-              { type: 'text', text: message.content || 'Please analyze this image in the context of my portfolio.' },
-              { type: 'image_url', image_url: { url: message.image.dataUrl } }
-            ]
-          };
-        }
-
+  const buildApiMessages = (messages) => [
+    { role: "system", content: portfolioKnowledge },
+    ...messages.map((m) => {
+      if (m.role === "user" && m.image?.dataUrl) {
         return {
-          role: message.role,
-          content: message.content
+          role: "user",
+          content: [
+            { type: "text", text: m.content || "Please analyze this image in the context of my portfolio." },
+            { type: "image_url", image_url: { url: m.image.dataUrl } },
+          ],
         };
-      })
-    ];
+      }
+      return { role: m.role, content: m.content };
+    }),
+  ];
 
-  const sendMessage = async (presetQuestion) => {
+  const sendMessage = async (preset) => {
     if (!currentSession) return;
-
-    const text = (presetQuestion ?? messageInput).trim();
+    const text = (preset ?? messageInput).trim();
     if ((!text && !pendingImage) || isTyping) return;
 
     const userMessage = {
       id: Date.now(),
-      role: 'user',
-      content: text || 'Please analyze this image and relate it to my portfolio expertise.',
+      role: "user",
+      content: text || "Please analyze this image and relate it to my portfolio expertise.",
       image: pendingImage,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-
     const nextMessages = [...currentSession.messages, userMessage];
 
-    updateCurrentSession((session) => ({
-      ...session,
+    updateCurrentSession((s) => ({
+      ...s,
       messages: nextMessages,
       updatedAt: new Date().toISOString(),
-      title: session.title === 'New Chat' && text ? text.slice(0, 34) : session.title,
-      preview: text || pendingImage?.name || session.preview
+      title: s.title === "New chat" && text ? text.slice(0, 42) : s.title,
+      preview: text || pendingImage?.name || s.preview,
     }));
 
-    setMessageInput('');
+    setMessageInput("");
     setPendingImage(null);
     setIsTyping(true);
-    setShowSuggestions(false);
 
     try {
       const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: 'openrouter/auto',
+          model: "openrouter/auto",
           max_tokens: 1024,
-          messages: buildApiMessages(nextMessages)
-        })
+          messages: buildApiMessages(nextMessages),
+        }),
       });
 
       if (!response.ok) {
         let errorMessage = `API Error ${response.status}`;
-
         try {
-          const errorData = await response.json();
-          errorMessage = normalizeErrorMessage(errorData, errorMessage);
-        } catch {
-        }
-
+          errorMessage = normalizeErrorMessage(await response.json(), errorMessage);
+        } catch {}
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      const aiContent = data?.choices?.[0]?.message?.content?.trim() || 'No response received.';
+      const aiContent = data?.choices?.[0]?.message?.content?.trim() || "No response received.";
 
-      updateCurrentSession((session) => {
-        const updatedMessages = [
-          ...session.messages,
-          {
-            id: Date.now() + 1,
-            role: 'assistant',
-            content: aiContent,
-            timestamp: new Date().toISOString()
-          }
-        ];
-
-        return {
-          ...session,
-          messages: updatedMessages,
-          updatedAt: new Date().toISOString(),
-          preview: aiContent.slice(0, 64)
-        };
-      });
+      updateCurrentSession((s) => ({
+        ...s,
+        messages: [
+          ...s.messages,
+          { id: Date.now() + 1, role: "assistant", content: aiContent, timestamp: new Date().toISOString() },
+        ],
+        updatedAt: new Date().toISOString(),
+        preview: aiContent.slice(0, 64),
+      }));
     } catch (error) {
-      console.error('Portfolio AI error:', error);
-      const fallbackReply = `${generateFallbackReply(text)}\n\nConnection note: ${normalizeErrorMessage(error, 'Unable to reach the AI service.')}`;
-
-      updateCurrentSession((session) => {
-        const updatedMessages = [
-          ...session.messages,
-          {
-            id: Date.now() + 1,
-            role: 'assistant',
-            content: fallbackReply,
-            timestamp: new Date().toISOString()
-          }
-        ];
-
-        return {
-          ...session,
-          messages: updatedMessages,
-          updatedAt: new Date().toISOString(),
-          preview: 'Connection issue while fetching AI response.'
-        };
-      });
+      console.error("Portfolio AI error:", error);
+      const fallback = `${generateFallbackReply(text)}\n\n*Connection note: ${normalizeErrorMessage(
+        error,
+        "Unable to reach the AI service."
+      )}*`;
+      updateCurrentSession((s) => ({
+        ...s,
+        messages: [
+          ...s.messages,
+          { id: Date.now() + 1, role: "assistant", content: fallback, timestamp: new Date().toISOString() },
+        ],
+        updatedAt: new Date().toISOString(),
+        preview: "Connection issue",
+      }));
     } finally {
       setIsTyping(false);
     }
   };
 
   const currentMessages = currentSession?.messages || [];
-  const palette =
-    theme === 'dark'
-      ? {
-          bg: 'var(--slate-950)',
-          panel: 'rgba(15, 23, 42, 0.96)',
-          sidebar: 'rgba(2, 6, 23, 0.92)',
-          surface: 'rgba(30, 41, 59, 0.88)',
-          bot: 'rgba(15, 23, 42, 0.88)',
-          user: 'linear-gradient(135deg, var(--indigo-500), var(--purple-500))',
-          text: 'var(--slate-100)',
-          muted: 'var(--slate-400)',
-          border: 'rgba(255, 255, 255, 0.10)',
-          accent: 'var(--indigo-400)',
-          accentSoft: 'rgba(99, 102, 241, 0.16)'
-        }
-      : {
-          bg: 'var(--slate-950)',
-          panel: 'rgba(255, 255, 255, 0.96)',
-          sidebar: 'rgba(248, 250, 252, 0.95)',
-          surface: 'rgba(241, 245, 249, 0.96)',
-          bot: 'rgba(248, 250, 252, 0.95)',
-          user: 'linear-gradient(135deg, var(--indigo-500), var(--purple-500))',
-          text: 'var(--slate-100)',
-          muted: 'var(--slate-500)',
-          border: 'rgba(15, 23, 42, 0.10)',
-          accent: 'var(--indigo-500)',
-          accentSoft: 'rgba(99, 102, 241, 0.10)'
-        };
+  const isEmpty = currentMessages.length === 0 && !isTyping;
+
+  const rootClass = [
+    "gk",
+    expanded ? "is-expanded" : inNavbar ? "is-navbar" : "is-floating",
+    showHistory ? "history-open" : "",
+    isEmpty ? "is-empty" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  /* One composer, rendered either centered (empty chat) or docked at the bottom */
+  const composer = (
+    <div className="gk-composer">
+      {pendingImage && (
+        <div className="gk-pending">
+          <img src={pendingImage.dataUrl} alt={pendingImage.name} />
+          <span className="gk-pending-name">{pendingImage.name}</span>
+          <button type="button" className="gk-ico-btn" onClick={() => setPendingImage(null)} aria-label="Remove attachment">
+            <FontAwesomeIcon icon={faXmark} />
+          </button>
+        </div>
+      )}
+      <div className="gk-box">
+        <textarea
+          ref={textareaRef}
+          className="gk-textarea"
+          aria-label="Message"
+          rows={1}
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
+          placeholder="What do you want to know?"
+        />
+        <div className="gk-bar">
+          <button type="button" className="gk-ico-btn round" onClick={() => fileInputRef.current?.click()} aria-label="Attach image">
+            <FontAwesomeIcon icon={faPaperclip} />
+          </button>
+          <button type="button" className="gk-pill" onClick={() => setMessageInput("Tell me about your projects")}>
+            Projects
+          </button>
+          <button type="button" className="gk-pill" onClick={() => setMessageInput("What is your hiring availability?")}>
+            Hiring
+          </button>
+          <button
+            type="button"
+            className="gk-send"
+            onClick={() => sendMessage()}
+            disabled={isTyping || (!messageInput.trim() && !pendingImage)}
+            aria-label="Send message"
+          >
+            <FontAwesomeIcon icon={faArrowUp} />
+          </button>
+        </div>
+      </div>
+      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageSelect} />
+    </div>
+  );
 
   return (
     <>
       <style>{`
-        .portfolio-ai-shell * { box-sizing: border-box; }
-        .portfolio-ai-shell button,
-        .portfolio-ai-shell input,
-        .portfolio-ai-shell textarea {
-          font: inherit;
+        .gk {
+          --c-bg: var(--bg, #0b0d12);
+          --c-solid: var(--solid, #12151c);
+          --c-surface: var(--surface, #181c25);
+          --c-line: var(--line, #262b37);
+          --c-fg: var(--fg, #eceff5);
+          --c-muted: var(--muted, #8a93a6);
+          --c-accent: var(--accent, #eceff5);
+          --c-on: var(--on, #0b0d12);
+          color: var(--c-fg);
+          font-family: "Inter", system-ui, sans-serif;
         }
-        .portfolio-ai-shell {
-          position: ${expanded ? 'relative' : inNavbar ? 'relative' : 'fixed'};
-          right: ${expanded ? 'auto' : inNavbar ? 'auto' : '16px'};
-          bottom: ${expanded ? 'auto' : inNavbar ? 'auto' : '16px'};
-          left: ${expanded ? 'auto' : 'unset'};
-          z-index: ${expanded ? '1' : '9999'};
-          color: ${palette.text};
-          max-width: ${expanded ? '100%' : inNavbar ? 'none' : 'calc(100vw - 16px)'};
-          width: ${expanded ? '100%' : 'auto'};
-          min-width: 0;
+        .gk *, .gk *::before, .gk *::after { box-sizing: border-box; }
+        .gk button, .gk textarea { font: inherit; }
+        .gk button:focus-visible, .gk textarea:focus-visible { outline: 2px solid var(--c-muted); outline-offset: 2px; }
+
+        /* Placement */
+        .gk.is-floating { position: fixed; right: 16px; bottom: 16px; z-index: 9999; }
+        .gk.is-navbar { position: relative; z-index: 9999; }
+        .gk.is-expanded { position: relative; width: 100%; height: 100%; flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+
+        /* Window: slim rail + main */
+        .gk-window {
+          position: relative; width: min(960px, calc(100vw - 24px)); height: min(680px, calc(100dvh - 96px));
+          display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
+          overflow: hidden; background: var(--c-bg); border: 1px solid var(--c-line); border-radius: 20px;
+          box-shadow: 0 24px 60px rgba(0,0,0,.4); margin-bottom: 12px;
         }
-        .portfolio-ai-window {
-          width: ${expanded ? '100%' : 'clamp(340px, 58vw, 720px)'};
-          max-width: ${expanded ? '100%' : 'calc(100vw - 24px)'};
-          height: ${expanded ? 'min(78vh, 920px)' : 'min(540px, calc(100vh - 28px))'};
-          max-height: ${expanded ? 'calc(100vh - 140px)' : 'calc(100vh - 28px)'};
-          min-height: ${expanded ? '680px' : 'auto'};
-          margin-bottom: ${expanded ? '0' : '10px'};
-          border-radius: ${expanded ? '28px' : '20px'};
-          overflow: hidden;
-          border: 1px solid ${palette.border};
-          background:
-            radial-gradient(circle at top right, ${palette.accentSoft}, transparent 30%),
-            linear-gradient(180deg, ${palette.panel}, ${palette.bg});
-          box-shadow: ${expanded ? '0 26px 60px rgba(0, 0, 0, 0.24)' : '0 18px 48px rgba(0, 0, 0, 0.32)'};
-          display: grid;
-          grid-template-columns: ${expanded ? '260px minmax(0, 1fr)' : '210px minmax(0, 1fr)'};
-          align-items: stretch;
-          ${expanded ? '' : inNavbar ? 'position: absolute; top: calc(100% + 12px); right: 0;' : ''}
+        .gk.is-navbar .gk-window { position: absolute; top: calc(100% + 12px); right: 0; margin: 0; }
+        .gk.is-expanded .gk-window { width: 100%; height: auto; flex: 1 1 0; min-height: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+
+        /* Rail */
+        .gk-rail { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0; border-right: 1px solid var(--c-line); background: var(--c-bg); z-index: 5; }
+        .gk-logo { width: 36px; height: 36px; border-radius: 50%; background: var(--c-accent); color: var(--c-on); display: grid; place-items: center; font-weight: 800; font-size: .74rem; margin-bottom: 10px; }
+        .gk-rail-sp { flex: 1; }
+        .gk-ico-btn { width: 40px; height: 40px; border-radius: 12px; border: 0; background: transparent; color: var(--c-muted); display: grid; place-items: center; cursor: pointer; flex-shrink: 0; text-decoration: none; transition: background .15s, color .15s; }
+        .gk-ico-btn:hover, .gk-ico-btn.on { background: var(--c-surface); color: var(--c-fg); }
+        .gk-ico-btn.round { border-radius: 50%; border: 1px solid var(--c-line); width: 36px; height: 36px; }
+
+        /* History panel slides out from the rail */
+        .gk-panel { position: absolute; top: 0; bottom: 0; left: 64px; width: min(300px, calc(100% - 64px)); z-index: 4; display: flex; flex-direction: column;
+          background: var(--c-solid); border-right: 1px solid var(--c-line); transform: translateX(-110%); transition: transform .24s cubic-bezier(.2,.8,.2,1); }
+        .gk.history-open .gk-panel { transform: translateX(0); box-shadow: 16px 0 40px rgba(0,0,0,.3); }
+        .gk-panel-head { padding: 18px 18px 10px; font-weight: 700; font-size: .95rem; }
+        .gk-list { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 0 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .gk-session { width: 100%; text-align: left; border: 0; background: transparent; color: var(--c-fg); border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: background .12s; }
+        .gk-session:hover, .gk-session.active { background: var(--c-surface); }
+        .gk-session-t, .gk-session-p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gk-session-t { font-weight: 600; font-size: .88rem; }
+        .gk-session-p { font-size: 12.5px; color: var(--c-muted); margin-top: 2px; }
+        .gk-panel-foot { padding: 12px 14px 16px; border-top: 1px solid var(--c-line); }
+        .gk-clear { width: 100%; height: 40px; border: 1px solid var(--c-line); background: transparent; color: var(--c-muted); border-radius: 12px; font-weight: 600; font-size: .86rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s, color .15s; }
+        .gk-clear:hover { background: var(--c-surface); color: var(--c-fg); }
+        .gk-scrim { display: none; }
+        .gk.history-open .gk-scrim { display: block; position: absolute; inset: 0 0 0 64px; z-index: 3; background: rgba(0,0,0,.35); border: 0; padding: 0; cursor: pointer; }
+
+        /* Main */
+        .gk-main { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+        .gk-top { position: absolute; top: 12px; right: 14px; z-index: 2; display: flex; gap: 8px; }
+        .gk-chip { border: 1px solid var(--c-line); border-radius: 999px; padding: 5px 13px; font-size: .8rem; color: var(--c-muted); background: var(--c-bg); }
+
+        .gk-scroll { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+        .gk-thread { width: 100%; max-width: 760px; margin: 0 auto; padding: 56px 24px 12px; display: flex; flex-direction: column; gap: 26px; }
+
+        .gk-msg { animation: gkIn .22s ease; }
+        .gk-msg.user { align-self: flex-end; max-width: 82%; }
+        .gk-msg.user .gk-bubble { background: var(--c-surface); border: 1px solid var(--c-line); padding: 11px 18px; border-radius: 22px 22px 6px 22px; }
+        .gk-msg.assistant { align-self: stretch; }
+        .gk-bubble { line-height: 1.7; font-size: .97rem; overflow-wrap: anywhere; }
+        .gk-bubble img { max-width: min(240px, 100%); border-radius: 14px; display: block; margin-bottom: 8px; }
+        .gk-bubble code { background: var(--c-surface); padding: 2px 6px; border-radius: 6px; font-size: .88em; }
+        .gk-actions { display: flex; gap: 2px; margin-top: 6px; }
+        .gk-actions .gk-ico-btn { width: 32px; height: 32px; border-radius: 9px; font-size: .8rem; }
+
+        .gk-typing { display: flex; gap: 5px; padding: 8px 0; }
+        .gk-typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--c-muted); animation: gkDot 1.2s infinite ease-in-out; }
+        .gk-typing span:nth-child(2) { animation-delay: .15s; }
+        .gk-typing span:nth-child(3) { animation-delay: .3s; }
+
+        /* Composer */
+        .gk-dock { flex: 0 0 auto; padding: 8px 20px calc(14px + env(safe-area-inset-bottom, 0px)); }
+        .gk-composer { width: 100%; max-width: 760px; margin: 0 auto; }
+        .gk-box { background: var(--c-solid); border: 1px solid var(--c-line); border-radius: 26px; padding: 10px 12px 10px 16px; transition: border-color .15s; }
+        .gk-box:focus-within { border-color: var(--c-muted); }
+        .gk-textarea { width: 100%; min-height: 40px; max-height: 160px; resize: none; border: 0; outline: 0; background: transparent; color: var(--c-fg); font-size: 16px; line-height: 24px; padding: 6px 2px; display: block; }
+        .gk-textarea::placeholder { color: var(--c-muted); }
+        .gk-bar { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+        .gk-pill { border: 1px solid var(--c-line); background: transparent; color: var(--c-muted); border-radius: 999px; padding: 6px 14px; font-size: .82rem; cursor: pointer; transition: background .15s, color .15s; }
+        .gk-pill:hover { background: var(--c-surface); color: var(--c-fg); }
+        .gk-send { margin-left: auto; width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--c-accent); color: var(--c-on); display: grid; place-items: center; cursor: pointer; transition: opacity .15s, transform .15s; }
+        .gk-send:disabled { opacity: .3; cursor: not-allowed; }
+        .gk-send:not(:disabled):hover { transform: scale(1.06); }
+        .gk-pending { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 6px 8px 6px 6px; border: 1px solid var(--c-line); border-radius: 16px; background: var(--c-solid); }
+        .gk-pending img { width: 40px; height: 40px; object-fit: cover; border-radius: 10px; }
+        .gk-pending-name { flex: 1; min-width: 0; font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gk-foot { text-align: center; font-size: 12px; color: var(--c-muted); margin-top: 10px; }
+
+        /* Empty state: wordmark + centered composer + chips (Grok-style) */
+        .gk-hero { margin: auto; width: 100%; max-width: 720px; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+        .gk-word { text-align: center; font-size: clamp(2.6rem, 7vw, 4.2rem); font-weight: 800; letter-spacing: -.05em; line-height: 1; }
+        .gk-word small { display: block; margin-top: 10px; font-size: .95rem; font-weight: 400; letter-spacing: 0; color: var(--c-muted); }
+        .gk-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .gk-chips button { border: 1px solid var(--c-line); background: transparent; color: var(--c-muted); border-radius: 999px; padding: 8px 15px; font-size: .84rem; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+        .gk-chips button:hover { background: var(--c-surface); color: var(--c-fg); border-color: var(--c-muted); }
+
+        /* Launcher */
+        .gk-launcher { margin-left: auto; width: 58px; height: 58px; border-radius: 16px; border: 1px solid var(--c-line); background: var(--c-accent); color: var(--c-on); box-shadow: 0 12px 28px rgba(0,0,0,.3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; font-weight: 700; font-size: 11px; transition: transform .15s; }
+        .gk-launcher:hover { transform: translateY(-2px); }
+        .gk.is-navbar .gk-launcher { width: auto; height: 40px; border-radius: 12px; padding: 0 14px; flex-direction: row; gap: 8px; font-size: 13px; box-shadow: none; }
+
+        @keyframes gkIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        @keyframes gkDot { 0%, 80%, 100% { transform: translateY(0); opacity: .4; } 40% { transform: translateY(-4px); opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) { .gk *, .gk *::before, .gk *::after { animation: none !important; transition: none !important; } }
+
+        @media (max-height: 640px) {
+          .gk-hero { gap: 16px; padding: 12px 16px; }
+          .gk-word { font-size: 2.2rem; }
+          .gk-word small, .gk-foot { display: none; }
         }
-        .portfolio-ai-sidebar {
-          background: ${palette.sidebar};
-          border-right: 1px solid ${palette.border};
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-          min-height: 0;
-        }
-        .portfolio-ai-brand {
-          padding: 14px;
-          border-bottom: 1px solid ${palette.border};
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .portfolio-ai-brand-icon,
-        .portfolio-ai-avatar {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, var(--indigo-500), var(--purple-500), var(--fuchsia-500));
-          color: white;
-          flex-shrink: 0;
-        }
-        .portfolio-ai-actions,
-        .portfolio-ai-sidebar-footer {
-          padding: 12px 14px;
-          border-bottom: 1px solid ${palette.border};
-        }
-        .portfolio-ai-sidebar-footer {
-          border-bottom: 0;
-          border-top: 1px solid ${palette.border};
-          margin-top: auto;
-        }
-        .portfolio-ai-btn,
-        .portfolio-ai-outline-btn {
-          border-radius: 12px;
-          padding: 9px 12px;
-          cursor: pointer;
-          transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        }
-        .portfolio-ai-btn {
-          border: 0;
-          background: linear-gradient(135deg, var(--indigo-500), var(--purple-500), var(--fuchsia-500));
-          color: white;
-          font-weight: 700;
-          box-shadow: 0 14px 34px rgba(99, 102, 241, 0.28);
-        }
-        .portfolio-ai-btn:hover,
-        .portfolio-ai-outline-btn:hover,
-        .portfolio-ai-launcher:hover {
-          transform: translateY(-2px);
-        }
-        .portfolio-ai-outline-btn {
-          border: 1px solid ${palette.border};
-          background: transparent;
-          color: ${palette.text};
-          font-weight: 600;
-        }
-        .portfolio-ai-history {
-          padding: 10px;
-          overflow-y: auto;
-          overflow-x: hidden;
-          display: grid;
-          gap: 8px;
-          min-height: 0;
-        }
-        .portfolio-ai-history-item {
-          width: 100%;
-          text-align: left;
-          border: 1px solid ${palette.border};
-          background: ${palette.surface};
-          color: ${palette.text};
-          border-radius: 14px;
-          padding: 10px;
-          cursor: pointer;
-          transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-        }
-        .portfolio-ai-history-item.active,
-        .portfolio-ai-history-item:hover {
-          transform: translateX(3px);
-          border-color: ${palette.accent};
-          background: ${palette.accentSoft};
-        }
-        .portfolio-ai-main {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-          width: 100%;
-          min-height: 0;
-          overflow: hidden;
-        }
-        .portfolio-ai-header {
-          padding: ${expanded ? '18px 22px' : '14px 16px'};
-          border-bottom: 1px solid ${palette.border};
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-          background: rgba(255, 255, 255, 0.02);
-        }
-        .portfolio-ai-header-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .portfolio-ai-chat {
-          flex: 1;
-          overflow-y: auto;
-          overflow-x: hidden;
-          padding: ${expanded ? '20px 22px' : '14px'};
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          min-width: 0;
-          min-height: 0;
-          scroll-behavior: smooth;
-        }
-        .portfolio-ai-message {
-          max-width: min(76%, 460px);
-          display: flex;
-          gap: 10px;
-          animation: portfolioAiRise 0.25s ease;
-          flex-shrink: 0;
-        }
-        .portfolio-ai-message.user {
-          align-self: flex-end;
-          flex-direction: row-reverse;
-        }
-        .portfolio-ai-bubble {
-          border-radius: 18px;
-          padding: 12px 14px;
-          border: 1px solid ${palette.border};
-          line-height: 1.6;
-          box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
-        }
-        .portfolio-ai-message.assistant .portfolio-ai-bubble {
-          background: ${palette.bot};
-        }
-        .portfolio-ai-message.user .portfolio-ai-bubble {
-          background: ${palette.user};
-          color: #ffffff;
-          border-color: transparent;
-        }
-        .portfolio-ai-hero-card {
-          border: 1px solid ${palette.border};
-          background: linear-gradient(135deg, ${palette.surface}, ${palette.bot});
-          border-radius: 18px;
-          padding: 14px;
-          display: grid;
-          gap: 12px;
-        }
-        .portfolio-ai-pill-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .portfolio-ai-pill {
-          border: 1px solid ${palette.border};
-          border-radius: 999px;
-          background: transparent;
-          color: ${palette.text};
-          padding: 7px 10px;
-          cursor: pointer;
-          transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-        }
-        .portfolio-ai-pill:hover {
-          transform: translateY(-2px);
-          border-color: ${palette.accent};
-          background: ${palette.accentSoft};
-        }
-        .portfolio-ai-input-wrap {
-          padding: ${expanded ? '16px 22px 22px' : '12px 14px 14px'};
-          border-top: 1px solid ${palette.border};
-          display: grid;
-          gap: 10px;
-          background: rgba(255, 255, 255, 0.02);
-          min-width: 0;
-          flex-shrink: 0;
-        }
-        .portfolio-ai-textarea-wrap {
-          display: grid;
-          grid-template-columns: 40px minmax(0, 1fr) 40px auto;
-          gap: 8px;
-          align-items: end;
-          min-width: 0;
-        }
-        .portfolio-ai-icon-btn {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
-          border: 1px solid ${palette.border};
-          background: ${palette.surface};
-          color: ${palette.text};
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-        }
-        .portfolio-ai-textarea {
-          width: 100%;
-          min-width: 0;
-          min-height: 40px;
-          max-height: 110px;
-          resize: none;
-          border-radius: 12px;
-          border: 1px solid ${palette.border};
-          background: ${palette.surface};
-          color: ${palette.text};
-          padding: 10px 12px;
-          outline: none;
-        }
-        .portfolio-ai-launcher {
-          width: 64px;
-          height: 64px;
-          border-radius: 18px;
-          border: 1px solid ${palette.border};
-          background: linear-gradient(135deg, var(--indigo-500), var(--purple-500), var(--fuchsia-500));
-          color: white;
-          box-shadow: 0 18px 38px rgba(99, 102, 241, 0.32);
-          display: inline-flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 2px;
-          cursor: pointer;
-          font-weight: 800;
-          ${inNavbar ? 'width: auto; min-width: 0; height: 46px; border-radius: 14px; padding: 0 14px; flex-direction: row; gap: 8px; box-shadow: 0 12px 28px rgba(99, 102, 241, 0.24);' : ''}
-        }
-        .portfolio-ai-section {
-          width: 100%;
-          max-width: 100%;
-          margin: 0 auto;
-          min-width: 0;
-        }
-        .portfolio-ai-muted {
-          color: ${palette.muted};
-        }
-        .portfolio-ai-image-preview {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          border: 1px solid ${palette.border};
-          background: ${palette.surface};
-          border-radius: 12px;
-          padding: 8px;
-          max-width: 100%;
-        }
-        .portfolio-ai-image-preview img,
-        .portfolio-ai-bubble img {
-          width: 56px;
-          height: 56px;
-          object-fit: cover;
-          border-radius: 12px;
-          border: 1px solid ${palette.border};
-        }
-        .portfolio-ai-typing {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .portfolio-ai-typing span {
-          width: 8px;
-          height: 8px;
-          border-radius: 999px;
-          background: ${palette.muted};
-          animation: portfolioAiTyping 1.2s infinite ease-in-out;
-        }
-        .portfolio-ai-typing span:nth-child(2) { animation-delay: 0.15s; }
-        .portfolio-ai-typing span:nth-child(3) { animation-delay: 0.3s; }
-        .portfolio-ai-mobile-toggle {
-          display: none;
-        }
-        @keyframes portfolioAiTyping {
-          0%, 80%, 100% { transform: translateY(0); opacity: 0.6; }
-          40% { transform: translateY(-5px); opacity: 1; }
-        }
-        @keyframes portfolioAiRise {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @media (max-width: 900px) {
-          .portfolio-ai-window {
-            grid-template-columns: 1fr;
-            position: relative;
-            width: ${expanded ? '100%' : 'min(100vw - 24px, 720px)'};
-            min-height: ${expanded ? '620px' : 'auto'};
-          }
-          .portfolio-ai-sidebar {
-            position: absolute;
-            inset: 0 auto 0 0;
-            width: min(300px, 85vw);
-            z-index: 2;
-            transform: translateX(${showHistory ? '0' : '-105%'});
-            transition: transform 0.25s ease;
-            box-shadow: 18px 0 40px rgba(0, 0, 0, 0.22);
-          }
-          .portfolio-ai-mobile-toggle {
-            display: inline-flex;
-          }
-        }
-        @media (max-width: 1280px) {
-          .portfolio-ai-window {
-            width: ${expanded ? '100%' : 'min(680px, calc(100vw - 20px))'};
-            height: ${expanded ? 'min(78vh, 860px)' : 'min(520px, calc(100vh - 24px))'};
-            max-height: ${expanded ? 'calc(100vh - 120px)' : 'calc(100vh - 24px)'};
-            grid-template-columns: ${expanded ? '240px minmax(0, 1fr)' : '200px minmax(0, 1fr)'};
-          }
-          .portfolio-ai-header {
-            padding: 12px 14px;
-          }
-          .portfolio-ai-chat {
-            padding: 12px;
-          }
-          .portfolio-ai-input-wrap {
-            padding: 10px 12px 12px;
-          }
-          .portfolio-ai-message {
-            max-width: min(80%, 420px);
-          }
-        }
-        @media (max-width: 1100px) {
-          .portfolio-ai-window {
-            grid-template-columns: 1fr;
-            width: ${expanded ? '100%' : 'min(620px, calc(100vw - 20px))'};
-          }
-          .portfolio-ai-sidebar {
-            position: absolute;
-            inset: 0 auto 0 0;
-            width: min(280px, 82vw);
-            z-index: 2;
-            transform: translateX(${showHistory ? '0' : '-105%'});
-            transition: transform 0.25s ease;
-            box-shadow: 18px 0 40px rgba(0, 0, 0, 0.22);
-          }
-          .portfolio-ai-mobile-toggle {
-            display: inline-flex;
-          }
-        }
-        @media (max-width: 640px) {
-          .portfolio-ai-shell {
-            right: ${expanded ? 'auto' : inNavbar ? 'auto' : '8px'};
-            bottom: ${expanded ? 'auto' : inNavbar ? 'auto' : '8px'};
-            left: ${expanded ? 'auto' : inNavbar ? 'auto' : '8px'};
-          }
-          .portfolio-ai-window {
-            width: ${expanded ? '100%' : inNavbar ? 'min(100vw - 16px, 420px)' : '100%'};
-            height: ${expanded ? 'min(82vh, 760px)' : 'min(100dvh - 16px, 720px)'};
-            max-height: ${expanded ? 'calc(100vh - 96px)' : 'calc(100dvh - 16px)'};
-            min-height: ${expanded ? '560px' : 'auto'};
-            border-radius: ${expanded ? '22px' : '18px'};
-            margin-bottom: 8px;
-            ${expanded ? '' : inNavbar ? 'right: 0; left: auto;' : ''}
-          }
-          .portfolio-ai-header {
-            padding: 12px;
-          }
-          .portfolio-ai-chat {
-            padding: 12px;
-          }
-          .portfolio-ai-input-wrap {
-            padding: 10px;
-          }
-          .portfolio-ai-message {
-            max-width: 92%;
-          }
-          .portfolio-ai-textarea-wrap {
-            grid-template-columns: 40px minmax(0, 1fr) 40px;
-          }
-          .portfolio-ai-icon-btn,
-          .portfolio-ai-btn {
-            min-height: 40px;
-          }
-          .portfolio-ai-send-label {
-            display: none;
-          }
+        @media (max-width: 600px) {
+          .gk.is-floating { left: 8px; right: 8px; bottom: 8px; }
+          .gk.is-floating .gk-window { width: 100%; height: calc(100dvh - 84px); border-radius: 16px; }
+          .gk-window { grid-template-columns: 52px minmax(0, 1fr); }
+          .gk-panel { left: 52px; }
+          .gk.history-open .gk-scrim { inset: 0 0 0 52px; }
+          .gk-thread { padding: 52px 16px 8px; }
+          .gk-dock { padding-left: 12px; padding-right: 12px; }
+          .gk-chip { display: none; }
         }
       `}</style>
-      <div className={`portfolio-ai-shell ${expanded ? 'portfolio-ai-section' : ''}`}>
+
+      <div className={rootClass}>
         {isOpen && (
-          <div className="portfolio-ai-window">
-            <aside className="portfolio-ai-sidebar">
-              <div className="portfolio-ai-brand">
-                <div className="portfolio-ai-brand-icon">
-                  <FontAwesomeIcon icon={faRobot} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 800 }}>Portfolio AI Assistant</div>
-                  <div className="portfolio-ai-muted" style={{ fontSize: 12 }}>
-                    Mobile apps, React Native, .NET, Oracle
-                  </div>
-                </div>
-              </div>
-
-              <div className="portfolio-ai-actions">
-                <button type="button" className="portfolio-ai-btn" style={{ width: '100%' }} onClick={createNewChat}>
-                  <FontAwesomeIcon icon={faPlus} style={{ marginRight: 8 }} />
-                  New Chat
+          <div className="gk-window">
+            <nav className="gk-rail" aria-label="Chat navigation">
+              <div className="gk-logo">AH</div>
+              <button type="button" className="gk-ico-btn" onClick={createNewChat} aria-label="New chat" title="New chat">
+                <FontAwesomeIcon icon={faPlus} />
+              </button>
+              <button
+                type="button"
+                className={`gk-ico-btn ${showHistory ? "on" : ""}`}
+                onClick={() => setShowHistory((v) => !v)}
+                aria-label="Chat history"
+                title="History"
+              >
+                <FontAwesomeIcon icon={faClockRotateLeft} />
+              </button>
+              <div className="gk-rail-sp" />
+              {expanded && (
+                <>
+                  <button type="button" className="gk-ico-btn" onClick={toggleTheme} aria-label="Toggle theme" title="Toggle theme">
+                    <FontAwesomeIcon icon={theme === "dark" ? faSun : faMoon} />
+                  </button>
+                  <a href="#/" className="gk-ico-btn" aria-label="Back to portfolio" title="Back to portfolio">
+                    <FontAwesomeIcon icon={faHouse} />
+                  </a>
+                </>
+              )}
+              {!expanded && (
+                <button type="button" className="gk-ico-btn" onClick={() => setIsOpen(false)} aria-label="Close chat" title="Close">
+                  <FontAwesomeIcon icon={faXmark} />
                 </button>
-              </div>
+              )}
+            </nav>
 
-              <div className="portfolio-ai-history">
-                <div className="portfolio-ai-muted" style={{ fontSize: 13, fontWeight: 700 }}>
-                  Chat History
-                </div>
-                {chatSessions.map((session) => (
+            <aside className="gk-panel" aria-label="Chat history" aria-hidden={!showHistory}>
+              <div className="gk-panel-head">History</div>
+              <div className="gk-list">
+                {chatSessions.map((s) => (
                   <button
-                    key={session.id}
+                    key={s.id}
                     type="button"
-                    className={`portfolio-ai-history-item ${session.id === currentSessionId ? 'active' : ''}`}
+                    className={`gk-session ${s.id === currentSessionId ? "active" : ""}`}
                     onClick={() => {
-                      setCurrentSessionId(session.id);
+                      setCurrentSessionId(s.id);
                       setShowHistory(false);
                     }}
                   >
-                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{session.title || 'New Chat'}</div>
-                    <div className="portfolio-ai-muted" style={{ fontSize: 12 }}>
-                      {session.preview || 'Portfolio and hiring questions'}
-                    </div>
+                    <div className="gk-session-t">{s.title || "New chat"}</div>
+                    <div className="gk-session-p">{s.preview || "Portfolio questions"}</div>
                   </button>
                 ))}
               </div>
-
-              <div className="portfolio-ai-sidebar-footer">
-                <button type="button" className="portfolio-ai-outline-btn" style={{ width: '100%' }} onClick={clearAllChats}>
-                  <FontAwesomeIcon icon={faTrash} style={{ marginRight: 8 }} />
-                  Clear All
+              <div className="gk-panel-foot">
+                <button type="button" className="gk-clear" onClick={clearAllChats}>
+                  <FontAwesomeIcon icon={faTrash} /> Clear all
                 </button>
               </div>
             </aside>
+            <button type="button" className="gk-scrim" aria-label="Close history" onClick={() => setShowHistory(false)} />
 
-            <section className="portfolio-ai-main">
-              <div className="portfolio-ai-header">
-                <div>
-                  <div style={{ fontSize: 20, fontWeight: 800 }}>Ask About My Work</div>
-                  <div className="portfolio-ai-muted" style={{ fontSize: 13 }}>
-                    Projects, Android, React Native, ASP.NET, Oracle workflows, hiring
-                  </div>
-                </div>
-
-                <div className="portfolio-ai-header-actions">
-                  <button
-                    type="button"
-                    className="portfolio-ai-icon-btn portfolio-ai-mobile-toggle"
-                    onClick={() => setShowHistory((previous) => !previous)}
-                    aria-label="Toggle chat history"
-                  >
-                    <FontAwesomeIcon icon={faHistory} />
-                  </button>
-                  <button
-                    type="button"
-                    className="portfolio-ai-icon-btn"
-                    onClick={() => setShowSuggestions((previous) => !previous)}
-                    aria-label="Toggle suggestions"
-                  >
-                    <FontAwesomeIcon icon={faLightbulb} />
-                  </button>
-                  <button
-                    type="button"
-                    className="portfolio-ai-icon-btn"
-                    onClick={() => setIsOpen(false)}
-                    aria-label="Close chat"
-                    style={{ display: expanded ? 'none' : undefined }}
-                  >
-                    <FontAwesomeIcon icon={faXmark} />
-                  </button>
-                </div>
+            <section className="gk-main">
+              <div className="gk-top">
+                <span className="gk-chip">Portfolio grounded</span>
               </div>
 
-              <div className="portfolio-ai-chat">
-                {currentMessages.length === 0 && (
-                  <div className="portfolio-ai-hero-card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div className="portfolio-ai-brand-icon">
-                        <FontAwesomeIcon icon={faCodeBranch} />
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 20 }}>Portfolio AI is ready</div>
-                        <div className="portfolio-ai-muted">
-                          Ask about mobile app development, .NET portals, Oracle-connected workflows, project details, or hiring.
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="portfolio-ai-pill-grid">
-                      {suggestedQuestions.slice(0, 6).map((question) => (
-                        <button key={question} type="button" className="portfolio-ai-pill" onClick={() => sendMessage(question)}>
-                          {question}
+              {isEmpty ? (
+                <div className="gk-scroll">
+                  <div className="gk-hero">
+                    <h1 className="gk-word">
+                      Ahsan AI
+                      <small>Ask anything about my work</small>
+                    </h1>
+                    {composer}
+                    <div className="gk-chips">
+                      {suggestedQuestions.map((q) => (
+                        <button key={q} type="button" onClick={() => sendMessage(q)}>
+                          {q}
                         </button>
                       ))}
                     </div>
                   </div>
-                )}
-
-                {showSuggestions && (
-                  <div className="portfolio-ai-hero-card">
-                    <div style={{ fontWeight: 800 }}>Suggested Questions</div>
-                    <div className="portfolio-ai-pill-grid">
-                      {suggestedQuestions.map((question) => (
-                        <button key={question} type="button" className="portfolio-ai-pill" onClick={() => sendMessage(question)}>
-                          {question}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {currentMessages.map((message) => (
-                  <div key={message.id} className={`portfolio-ai-message ${message.role === 'user' ? 'user' : 'assistant'}`}>
-                    <div className="portfolio-ai-avatar">
-                      <FontAwesomeIcon icon={message.role === 'user' ? faUser : faRobot} />
-                    </div>
-                    <div>
-                      <div className="portfolio-ai-bubble">
-                        {message.image?.dataUrl && (
-                          <div style={{ marginBottom: message.content ? 10 : 0 }}>
-                            <img src={message.image.dataUrl} alt={message.image.name || 'Upload'} />
+                </div>
+              ) : (
+                <>
+                  <div className="gk-scroll">
+                    <div className="gk-thread">
+                      {currentMessages.map((m) => (
+                        <div key={m.id} className={`gk-msg ${m.role === "user" ? "user" : "assistant"}`}>
+                          <div className="gk-bubble">
+                            {m.image?.dataUrl && <img src={m.image.dataUrl} alt={m.image.name || "Upload"} />}
+                            {m.content && (
+                              <div dangerouslySetInnerHTML={{ __html: formatMessageContent(m.content) }} />
+                            )}
                           </div>
-                        )}
-                        {message.content && (
-                          <div dangerouslySetInnerHTML={{ __html: formatMessageContent(message.content) }} />
-                        )}
-                      </div>
-                      <div className="portfolio-ai-muted" style={{ fontSize: 11, marginTop: 6 }}>
-                        {new Date(message.timestamp).toLocaleString()}
-                      </div>
+                          {m.role === "assistant" && (
+                            <div className="gk-actions">
+                              <button type="button" className="gk-ico-btn" onClick={() => copyMessage(m)} aria-label="Copy reply" title="Copy">
+                                <FontAwesomeIcon icon={copiedId === m.id ? faCheck : faCopy} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {isTyping && (
+                        <div className="gk-msg assistant">
+                          <div className="gk-typing" aria-label="Thinking">
+                            <span />
+                            <span />
+                            <span />
+                          </div>
+                        </div>
+                      )}
+                      <div ref={messagesEndRef} />
                     </div>
                   </div>
-                ))}
-
-                {isTyping && (
-                  <div className="portfolio-ai-message assistant">
-                    <div className="portfolio-ai-avatar">
-                      <FontAwesomeIcon icon={faRobot} />
-                    </div>
-                    <div className="portfolio-ai-bubble">
-                      <div className="portfolio-ai-typing" aria-label="Assistant is typing">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                    </div>
+                  <div className="gk-dock">
+                    {composer}
+                    <div className="gk-foot">Grounded in Ahsan’s real portfolio data</div>
                   </div>
-                )}
-
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="portfolio-ai-input-wrap">
-                {pendingImage && (
-                  <div className="portfolio-ai-image-preview">
-                    <img src={pendingImage.dataUrl} alt={pendingImage.name} />
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis' }}>{pendingImage.name}</div>
-                      <div className="portfolio-ai-muted" style={{ fontSize: 12 }}>
-                        This image will be sent with your next message.
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="portfolio-ai-icon-btn"
-                      onClick={() => setPendingImage(null)}
-                      aria-label="Remove selected image"
-                    >
-                      <FontAwesomeIcon icon={faXmark} />
-                    </button>
-                  </div>
-                )}
-
-                <div className="portfolio-ai-textarea-wrap">
-                  <button
-                    type="button"
-                    className="portfolio-ai-icon-btn"
-                    onClick={() => fileInputRef.current?.click()}
-                    aria-label="Attach image"
-                  >
-                    <FontAwesomeIcon icon={faPaperclip} />
-                  </button>
-
-                  <textarea
-                    className="portfolio-ai-textarea"
-                    value={messageInput}
-                    onChange={(event) => setMessageInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' && !event.shiftKey) {
-                        event.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                    placeholder="Ask about projects, Android, React Native, .NET, Oracle, or hiring..."
-                  />
-
-                  <button
-                    type="button"
-                    className="portfolio-ai-icon-btn"
-                    onClick={() => setShowSuggestions((previous) => !previous)}
-                    aria-label="Show suggestions"
-                  >
-                    <FontAwesomeIcon icon={faLightbulb} />
-                  </button>
-
-                  <button
-                    type="button"
-                    className="portfolio-ai-btn"
-                    onClick={() => sendMessage()}
-                    disabled={isTyping || (!messageInput.trim() && !pendingImage)}
-                  >
-                    <FontAwesomeIcon icon={faPaperPlane} style={{ marginRight: 8 }} />
-                    <span className="portfolio-ai-send-label">Send</span>
-                  </button>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handleImageSelect}
-                />
-
-                <div className="portfolio-ai-muted" style={{ fontSize: 12 }}>
-                  The assistant is grounded in your portfolio, mobile app development, React Native, ASP.NET, Oracle workflows, and featured projects.
-                </div>
-              </div>
+                </>
+              )}
             </section>
           </div>
         )}
 
         {!expanded && (
-          <button
-            type="button"
-            className="portfolio-ai-launcher"
-            onClick={() => setIsOpen((previous) => !previous)}
-            aria-label="Toggle Portfolio AI chat"
-            title="Portfolio AI Assistant"
-          >
-            <FontAwesomeIcon icon={faRobot} style={{ fontSize: inNavbar ? 18 : 24 }} />
-            <div style={{ fontSize: inNavbar ? 14 : 12 }}>AI Chat</div>
+          <button type="button" className="gk-launcher" onClick={() => setIsOpen((v) => !v)} aria-label="Toggle AI chat">
+            <FontAwesomeIcon icon={faRobot} style={{ fontSize: inNavbar ? 15 : 20 }} />
+            {inNavbar ? "AI Chat" : "AI"}
           </button>
         )}
       </div>
